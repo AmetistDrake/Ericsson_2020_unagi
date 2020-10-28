@@ -1,0 +1,3 @@
+C:/Users/User/Documents/Rita/1etem/5.szemeszter/Ericsson 2020/unagi-master_cpp/socket-connector/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+C:/Users/User/Documents/Rita/1etem/5.szemeszter/Ericsson 2020/unagi-master_cpp/socket-connector/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/Users/User/Documents/Rita/1etem/5.szemeszter/Ericsson 2020/unagi-master_cpp/socket-connector/cmake-build-debug/CMakeFiles/socket_connector.dir

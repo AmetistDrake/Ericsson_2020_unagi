@@ -1,0 +1,3 @@
+C:\msys64\mingw64\bin\cmake.exe -E rm -f CMakeFiles\socket_connector.dir/objects.a
+C:\msys64\mingw64\bin\ar.exe cr CMakeFiles\socket_connector.dir/objects.a @CMakeFiles\socket_connector.dir\objects1.rsp
+C:\msys64\mingw64\bin\g++.exe -g   -Wl,--whole-archive CMakeFiles\socket_connector.dir/objects.a -Wl,--no-whole-archive  -o socket_connector.exe -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\socket_connector.dir\linklibs.rsp
