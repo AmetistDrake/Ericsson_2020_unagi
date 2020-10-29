@@ -4,10 +4,6 @@
 #include <cmath>
 #include <algorithm>
 
-// kerület nézés
-// factor
-// reader update
-
 using namespace std;
 
 Solver::Solver() = default;
