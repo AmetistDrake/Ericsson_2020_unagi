@@ -104,7 +104,7 @@ unsigned int Solver::infection(unsigned int y, unsigned int x) {
     for (unsigned i = 1; i <= sum; i++) {
         osszeg += infection_history[curr_tick - i][y][x];
     }
-    avg_infection_rate = osszeg / sum + reader.factors[1] % 10; // tick = 0ra ez nem jó
+    avg_infection_rate = osszeg / sum ; // tick = 0ra ez nem jó
 
     vector<std::pair<int, int>> neighbours{{0,  0},
                                            {-1, 0},
