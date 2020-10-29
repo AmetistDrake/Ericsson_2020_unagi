@@ -121,7 +121,7 @@ unsigned int Solver::infection(unsigned int y, unsigned int x) {
         unsigned int t = reader.factors[2] % 7 + 3;
         unsigned int a;
         if (tick_info[0][y][x].district != tick_info[0][c.first][c.second].district) { a = 2; }
-        else if (y != c.first and x != c.second) { a = 1; }
+        else if (y != c.first or x != c.second) { a = 1; }
         else { a = 0; }
         if (tick_info[curr_tick - 1][c.first][c.second].infectionRate > t * a) {
             sum_infection_rate +=
