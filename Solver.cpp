@@ -4,6 +4,10 @@
 #include <cmath>
 #include <algorithm>
 
+// kerület nézés
+// factor
+// reader update
+
 using namespace std;
 
 Solver::Solver() = default;
@@ -31,7 +35,7 @@ vector<string> Solver::process(const vector<string> &infos) {
     //reader.transform();
     load_tick_info();
 
-    // healing
+    // healing - fertőzöttek gyógyulása
     for (size_t y = 0; y < reader.dimension[0]; y++) {
         for (size_t x = 0; x < reader.dimension[1]; x++) {
             if (reader.areas[y][x].infectionRate > 0) {
@@ -40,7 +44,7 @@ vector<string> Solver::process(const vector<string> &infos) {
         }
     }
 
-    // infection
+    // infection - vírus terjed
     vector<vector<unsigned int>> tmp (reader.dimension[0],vector<unsigned int> (reader.dimension[1],0));
     infection_history.push_back(tmp);
 
@@ -52,7 +56,10 @@ vector<string> Solver::process(const vector<string> &infos) {
                     infection_history[0][y][x] = 1;
                 }
             } else {
-                infection(y, x);
+                reader.areas[y][x].infectionRate += infection(y, x);
+                if (reader.areas[y][x].infectionRate > 100) {
+                    reader.areas[y][x].infectionRate = 100;
+                }
             }
         }
     }
