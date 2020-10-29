@@ -39,7 +39,13 @@ vector<string> Solver::process(const vector<string> &infos) {
     for (size_t y = 0; y < reader.dimension[0]; y++) {
         for (size_t x = 0; x < reader.dimension[1]; x++) {
             if (reader.areas[y][x].infectionRate > 0) {
-                healing(y, x);
+                reader.areas[y][x].healthRate = reader.areas[y][x].healthRate + healing(y, x);
+                if(reader.areas[y][x].infectionRate - healing(y, x) < 0){
+                    reader.areas[y][x].infectionRate = 0;
+                }else{
+                    reader.areas[y][x].infectionRate = reader.areas[y][x].infectionRate - healing(y, x);
+                }
+
             }
         }
     }
@@ -63,6 +69,7 @@ vector<string> Solver::process(const vector<string> &infos) {
             }
         }
     }
+
 
     //updating factors
     update_factors();
