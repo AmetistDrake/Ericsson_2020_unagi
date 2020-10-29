@@ -6,7 +6,6 @@
 #include <memory>
 #include <sstream>
 #include <vector>
-#include <cstdlib>
 #include <stdexcept>
 #include <chrono>
 #include <cstring>
@@ -69,6 +68,7 @@ public:
 					if(!consumer.eof()) { // eof = end of file
 						remained_buffer = consumer.str().substr(consumer.tellg());
 					}
+					result.emplace_back(".");
 					return result;
 				} else if(!line.empty()) {
 					result.push_back(line);
@@ -125,23 +125,36 @@ public:
 
 			tmp = your_solver.process(tmp);
 
-			std::chrono::duration<double> process_seconds = std::chrono::steady_clock::now() - measure_start;
-			if (process_seconds > process_timeout_s) {
-				std::cerr << "[main] " << "Process took: " << process_seconds.count() << " seconds (>" << process_timeout_s.count() << "s)" << std::endl;
-				std::cerr << "[main] " << "CPU time used: " << 1.0 * (std::clock()-measure_clock_start) / CLOCKS_PER_SEC << std::endl;
-			}
+      if (tmp.size() == 1 && tmp[0] == "Game over")
+      {
+        break;
+      }
+      else {
+        if (!tmp.empty()) {
 
-			if(!_connector->is_valid() || tmp.empty()) {
-				continue;
-			}
+          std::chrono::duration<double> process_seconds = std::chrono::steady_clock::now() - measure_start;
+          if (process_seconds > process_timeout_s) {
+            std::cerr << "[main] " << "Process took: " << process_seconds.count() << " seconds (>"
+                      << process_timeout_s.count() << "s)" << std::endl;
+            std::cerr << "[main] " << "CPU time used: " << 1.0 * (std::clock() - measure_clock_start) / CLOCKS_PER_SEC
+                      << std::endl;
+          }
 
-			send_messages(tmp);
+          if (!_connector->is_valid() || tmp.empty()) {
+            continue;
+          }
 
-			std::chrono::duration<double> process_with_send_seconds = std::chrono::steady_clock::now() - measure_start;
-			if (process_seconds > process_timeout_s) {
-				std::cerr << "[main] " << "Process with send took: " << process_with_send_seconds.count() << " seconds (>" << process_timeout_s.count() << "s)" << std::endl;
-				std::cerr << "[main] " << "CPU time used: " << 1.0 * (std::clock()-measure_clock_start) / CLOCKS_PER_SEC << " sec" << std::endl;
-			}
+          send_messages(tmp);
+
+          std::chrono::duration<double> process_with_send_seconds = std::chrono::steady_clock::now() - measure_start;
+          if (process_seconds > process_timeout_s) {
+            std::cerr << "[main] " << "Process with send took: " << process_with_send_seconds.count() << " seconds (>"
+                      << process_timeout_s.count() << "s)" << std::endl;
+            std::cerr << "[main] " << "CPU time used: " << 1.0 * (std::clock() - measure_clock_start) / CLOCKS_PER_SEC
+                      << " sec" << std::endl;
+          }
+        }
+      }
 		}
 		std::cerr << "[main] " << "Game over" << std::endl;
 	}
