@@ -1,18 +1,24 @@
 // Load the TCP Library
 net = require('net');
+const GameDisplay = require('./GameDisplay');
 
 // Keep track of the chat clients
+
+const reader = new GameDisplay.Reader();
 
 const PORT = "1234";
 let clients = [];
 
+let gameid = 1;
+let maxtick = 44;
+let coutries_count = 0;
 let factor1 = 1569741360;
 let factor2 = 1785505948;
 let factor3 = 516548029;
 let factor4 = 1302116447;
 
 function reqData(tick) {
-    let response = "REQ 1 " + String(tick) + " 1\n.";
+    let response = "REQ " + String(gameid) + " " + String(tick) + " " + String(coutries_count) + "\n.";
     console.log(response);
     factor2 = factor2 * 48271 % 0x7fffffff;
     factor3 = factor3 * 48271 % 0x7fffffff;
@@ -21,11 +27,14 @@ function reqData(tick) {
     return response;
 }
 
-function startData() {
-    let gameid = 1;
-    let maxtick = 44;
-    let coutries_count = 1;
+function reqStartData() {
+    let response = "REQ " + String(gameid) + " " + String(0) + " " + String(coutries_count) + "\n.";
+    console.log(response);
+    console.log("<FACTORS AFTER GEN: " + factor1 + " " + factor2 + " " + factor3 + " " + factor4 + ">");
+    return response;
+}
 
+function startData() {
     let response = "";
         response += "START " + String(gameid) + " " + String(maxtick) + " " + String(coutries_count) + "\n";
         response += "FACTORS " + String(factor1) + " " + String(factor2) + " " + String(factor3) + " " + String(factor4) + "\n";
@@ -68,7 +77,7 @@ const server = net.createServer(function (socket) {
     // Handle incoming messages from clients.
     socket.on('data', function (data) {
         let response;
-        const message = data.toString().split("\n")
+        const message = data.toString().split("\n");
 
         for (let i = 0; i < message.length; i++) {
             console.log(message[i]);
@@ -77,26 +86,44 @@ const server = net.createServer(function (socket) {
             }
         }
 
-        for (let i = 0; i < message.length; i++) {
-            if (message[i] === ".") {
-                break;
-            }
+        if (message[0].includes("START")) {
+            response = startData();
 
-            let words = message[i].split(" ");
-            if (words[0] === "START") {
-                response = startData();
-                socket.write(response);
-                response = reqData(0);
-                socket.write(response);
-            } else if (words[0] === "RES") {
-                let tick = words[2];
-                tick++;
-                if (tick < 44) {
-                    response = reqData(tick);
-                    socket.write(response);
-                } else {
-                    socket.end();
+            reader.loadData(response);
+
+            socket.write(response);
+            response = reqStartData();
+            socket.write(response);
+        } else if (message[0].includes("RES")) {
+            let words = message[0].split(" ");
+            let tick = words[2];
+            tick++;
+            if (tick < 44) {
+                response = reqData(tick);
+
+                let infections = [];
+                for (let j = 1; j < message.length; j++) {
+                    words = message[j].split(" ");
+                    infections.push(words);
                 }
+
+                for (let y = 0; y < reader.dimension[0]; y++) {
+                    for (let x = 0; x < reader.dimension[1]; x++) {
+                        if (!reader.gameHistory[tick]) {
+                            reader.gameHistory[tick] = [];
+                        }
+                        if (!reader.gameHistory[tick][y]) {
+                            reader.gameHistory[tick][y] = [];
+                        }
+
+                        reader.gameHistory[tick][y][x] = new GameDisplay.Area();
+                        reader.gameHistory[tick][y][x].infectionRate = infections[y][x];
+                    }
+                }
+
+                socket.write(response);
+            } else {
+                socket.end();
             }
         }
     });
