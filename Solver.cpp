@@ -57,6 +57,9 @@ vector<string> Solver::process(const vector<string> &infos) {
         }
     }
 
+    //updating factors
+    update_factors();
+
     // Válasz
     stringstream ss;
     string command;
@@ -77,6 +80,7 @@ vector<string> Solver::process(const vector<string> &infos) {
     return commands;
 }
 
+//Solver fv. defek
 void Solver::load_tick_info() {
     tick_info.push_back(reader.areas);
 }
@@ -144,5 +148,12 @@ unsigned int Solver::healing(unsigned int y, unsigned int x) {
         return size_t(floor(min_infection_rate) * (reader.factors[0] % 10) / 20.0);
     } else {
         return 0;
+    }
+}
+
+void Solver::update_factors() {
+    //factor = factor * 48271 % 0x7fffffff
+    for(size_t i = 0; i < 4; i++){
+        reader.factors[i] = (reader.factors[i] * 48271) % 0x7fffffff; //lehet kell zárójel % előtt?
     }
 }

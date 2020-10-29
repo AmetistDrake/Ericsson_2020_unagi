@@ -13,7 +13,7 @@ private:
   void load_tick_info();
   unsigned int healing(unsigned int y, unsigned int x);
   unsigned int infection(unsigned int y,  unsigned int x);
-
+  void update_factors();
 
 public:
   Solver();
