@@ -1,5 +1,6 @@
 // Load the TCP Library
 net = require('net');
+http = require('http');
 const GameDisplay = require('./GameDisplay');
 
 // Keep track of the chat clients
@@ -132,6 +133,7 @@ const server = net.createServer(function (socket) {
     socket.on('end', function () {
         clients.splice(clients.indexOf(socket), 1);
         process.stdout.write(socket.name + " is disconnected.\n");
+        reader.display();
     });
 
     socket.on('error', function(e){
@@ -140,3 +142,10 @@ const server = net.createServer(function (socket) {
 });
 
 server.listen(PORT, () => console.log(`Listening on port ${PORT}!`));
+
+const server2 = http.createServer((req, res) => {
+    res.writeHead(200, {"Content-Type" : "text/html"});
+    res.write("<canvas style='border: 1px solid black; height: 100%; width: 100%'></canvas>");
+});
+
+server2.listen(5000, () => console.log("Try out stuff on port 5000!"))
