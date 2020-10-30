@@ -133,7 +133,6 @@ const server = net.createServer(function (socket) {
     socket.on('end', function () {
         clients.splice(clients.indexOf(socket), 1);
         process.stdout.write(socket.name + " is disconnected.\n");
-        reader.display();
     });
 
     socket.on('error', function(e){

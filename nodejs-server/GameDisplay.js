@@ -47,10 +47,6 @@ class Reader {
             }
         }
     }
-
-    display() {
-
-    }
 }
 
 module.exports = { Reader, Area };
