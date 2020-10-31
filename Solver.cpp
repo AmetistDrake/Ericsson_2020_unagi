@@ -28,17 +28,6 @@ vector<string> Solver::process(const vector<string> &infos) {
         return vector<string>{};
     }
 
-
-    /// debug factors
-    reader.factors[2] = 516548029;
-    size_t num = 0;
-    while (reader.factors[2] != 413011888) {
-        update_factor(reader.factors[2]);
-        num++;
-    }
-    cout << num << " " << reader.factors[2] << endl;
-    ////////////////////////////
-
     //reader.transform();
     load_tick_info();
 
@@ -158,14 +147,15 @@ unsigned int Solver::infection(unsigned int y, unsigned int x) {
                                            {1,  0},
                                            {0,  1}};
 
+    unsigned int t = reader.factors[2] % 7 + 3;
+    update_factor(reader.factors[2]);
+
     for (auto n:neighbours) {
         pair<int, int> c{y - n.first, x - n.second};
 
         if (!(0 <= c.first and c.first < reader.dimension[0] and
               0 <= c.second and c.second < reader.dimension[1]))
             continue; // lehet fel van cserélve
-        unsigned int t = reader.factors[2] % 7 + 3;
-        update_factor(reader.factors[2]);
         unsigned int a;
         if (tick_info[0][y][x].district != tick_info[0][c.first][c.second].district) { a = 2; }
         else if (y != c.first or x != c.second) { a = 1; }
@@ -176,11 +166,11 @@ unsigned int Solver::infection(unsigned int y, unsigned int x) {
         } else {
             sum_infection_rate += 0;
         }
-
     }
 
     avg_plus_sum_infection_rate = avg_infection_rate + sum_infection_rate;
     unsigned int solution = ceil(avg_plus_sum_infection_rate * ((reader.factors[3] % 25) + 50) / 100.0);
+    update_factor(reader.factors[3]);
     infection_history[curr_tick][y][x] = solution;
     return solution;
 }
