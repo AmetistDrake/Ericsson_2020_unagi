@@ -4,8 +4,6 @@
 #include <cmath>
 #include <algorithm>
 
-// kerület ha 0 akkor nincs infection
-
 using namespace std;
 
 Solver::Solver() = default;
@@ -30,14 +28,11 @@ vector<string> Solver::process(const vector<string> &infos) {
         return vector<string>{};
     }
 
-    //reader.transform();
-    load_tick_info();
-
     // healing - fertőzöttek gyógyulása
     heal.resize(reader.dimension[0], vector<unsigned int> (reader.dimension[1], 0));
 
-    for (size_t y = 0; y < reader.dimension[0]; y++) {
-        for (size_t x = 0; x < reader.dimension[1]; x++) {
+    for (size_t x = 0; x < reader.dimension[1]; x++) {
+        for (size_t y = 0; y < reader.dimension[0]; y++) {
             if (reader.areas[y][x].infectionRate > 0) {
                 unsigned int h = healing(y, x);
                 heal[y][x] = h;
@@ -53,8 +48,8 @@ vector<string> Solver::process(const vector<string> &infos) {
     vector<vector<unsigned int>> tmp (reader.dimension[0],vector<unsigned int> (reader.dimension[1],0)); // infection history 3D matrix layer
     infection_history.push_back(tmp);
 
-    for (size_t y = 0; y < reader.dimension[0]; y++) {
-        for (size_t x = 0; x < reader.dimension[1]; x++) {
+    for (size_t x = 0; x < reader.dimension[1]; x++) {
+        for (size_t y = 0; y < reader.dimension[0]; y++) {
             if (reader.data[1] == 0) { // első kör infection history
                 if (reader.areas[y][x].infectionRate > 0) {
                     infection_history[0][y][x] = 1;
@@ -70,6 +65,7 @@ vector<string> Solver::process(const vector<string> &infos) {
         }
     }
 
+    load_tick_info();
 
     // Válasz
     stringstream ss;
@@ -92,32 +88,32 @@ vector<string> Solver::process(const vector<string> &infos) {
 
     /// Ez ne íródjon ki a beadottban
     /**************************************/
-    ss << "<FACTORS " << reader.factors[0] << " " << reader.factors[1] << " " << reader.factors[2] << " " << reader.factors[3] << "> (faktorok a kor elejen)";
-    getline(ss, command);
-    commands.push_back(command);
-    ss.clear();
-
-    commands.emplace_back("INFECTION");
-    for (const auto& y : infection_history[reader.data[1]]) {
-        for (const auto& inf : y) {
-            ss << inf << " ";
-        }
-        getline(ss, command);
-        commands.push_back(command);
-        ss.clear();
-    }
-
-    commands.emplace_back("HEALING");
-    for (const auto& y : heal) {
-        for (const auto& h : y) {
-            ss << h << " ";
-        }
-        getline(ss, command);
-        commands.push_back(command);
-        ss.clear();
-    }
-
-    commands.emplace_back("\n"); // ez 2 üres sort generál, mert a main-ben is a parancs után küld egy \n-et
+//    ss << "<FACTORS " << reader.factors[0] << " " << reader.factors[1] << " " << reader.factors[2] << " " << reader.factors[3] << "> (faktorok a kor elejen)";
+//    getline(ss, command);
+//    commands.push_back(command);
+//    ss.clear();
+//
+//    commands.emplace_back("INFECTION");
+//    for (const auto& y : infection_history[reader.data[1]]) {
+//        for (const auto& inf : y) {
+//            ss << inf << " ";
+//        }
+//        getline(ss, command);
+//        commands.push_back(command);
+//        ss.clear();
+//    }
+//
+//    commands.emplace_back("HEALING");
+//    for (const auto& y : heal) {
+//        for (const auto& h : y) {
+//            ss << h << " ";
+//        }
+//        getline(ss, command);
+//        commands.push_back(command);
+//        ss.clear();
+//    }
+//
+//    commands.emplace_back("\n"); // ez 2 üres sort generál, mert a main-ben is a parancs után küld egy \n-et
     /**************************************/
 
     return commands;
@@ -174,6 +170,7 @@ unsigned int Solver::infection(unsigned int y, unsigned int x) {
     unsigned int solution = ceil(avg_plus_sum_infection_rate * float(((reader.factors[3] % 25) + 50) )/ 100.0);
     update_factor(reader.factors[3]);
     infection_history[curr_tick][y][x] = solution;
+
     return solution;
 }
 
