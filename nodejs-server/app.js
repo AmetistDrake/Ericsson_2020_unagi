@@ -7,7 +7,6 @@ const GameDisplay = require('./GameDisplay');
 
 const reader = new GameDisplay.Reader();
 
-const PORT = "1234";
 let clients = [];
 
 let gameid = 1;
@@ -21,17 +20,12 @@ let factor4 = 1302116447;
 function reqData(tick) {
     let response = "REQ " + String(gameid) + " " + String(tick) + " " + String(coutries_count) + "\n.";
     console.log(response);
-    factor2 = factor2 * 48271 % 0x7fffffff;
-    factor3 = factor3 * 48271 % 0x7fffffff;
-    factor4 = factor4 * 48271 % 0x7fffffff;
-    console.log("<FACTORS AFTER GEN: " + factor1 + " " + factor2 + " " + factor3 + " " + factor4 + ">");
     return response;
 }
 
 function reqStartData() {
     let response = "REQ " + String(gameid) + " " + String(0) + " " + String(coutries_count) + "\n.";
     console.log(response);
-    console.log("<FACTORS AFTER GEN: " + factor1 + " " + factor2 + " " + factor3 + " " + factor4 + ">");
     return response;
 }
 
@@ -140,11 +134,11 @@ const server = net.createServer(function (socket) {
     });
 });
 
-server.listen(PORT, () => console.log(`Listening on port ${PORT}!`));
+server.listen(1234, () => console.log(`Listening on port 1234!`));
 
 const server2 = http.createServer((req, res) => {
     res.writeHead(200, {"Content-Type" : "text/html"});
     res.write("<canvas style='border: 1px solid black; height: 100%; width: 100%'></canvas>");
 });
 
-server2.listen(5000, () => console.log("Try out stuff on port 5000!"))
+server2.listen(5000, () => console.log("Listening on port 5000!"))

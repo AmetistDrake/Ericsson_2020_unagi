@@ -35,24 +35,20 @@ vector<string> Solver::process(const vector<string> &infos) {
     for (size_t y = 0; y < reader.dimension[0]; y++) {
         for (size_t x = 0; x < reader.dimension[1]; x++) {
             if (reader.areas[y][x].infectionRate > 0) {
-                reader.areas[y][x].healthRate = reader.areas[y][x].healthRate + healing(y, x);
-                if(reader.areas[y][x].infectionRate - healing(y, x) < 0){
+                reader.areas[y][x].infectionRate = reader.areas[y][x].infectionRate - healing(y, x);
+                if(reader.areas[y][x].infectionRate < 0) {
                     reader.areas[y][x].infectionRate = 0;
-                }else{
-                    reader.areas[y][x].infectionRate = reader.areas[y][x].infectionRate - healing(y, x);
                 }
-
             }
         }
     }
 
     // infection - vírus terjed
-    vector<vector<unsigned int>> tmp (reader.dimension[0],vector<unsigned int> (reader.dimension[1],0));
+    vector<vector<unsigned int>> tmp (reader.dimension[0],vector<unsigned int> (reader.dimension[1],0)); // infection history 3D matrix layer
     infection_history.push_back(tmp);
 
     for (size_t y = 0; y < reader.dimension[0]; y++) {
         for (size_t x = 0; x < reader.dimension[1]; x++) {
-
             if (reader.data[1] == 0) {
                 if (reader.areas[y][x].infectionRate > 0) {
                     infection_history[0][y][x] = 1;
@@ -66,9 +62,6 @@ vector<string> Solver::process(const vector<string> &infos) {
         }
     }
 
-
-    //updating factors
-    update_factors();
 
     // Válasz
     stringstream ss;
@@ -103,6 +96,7 @@ unsigned int Solver::infection(unsigned int y, unsigned int x) {
 
     unsigned int osszeg = 0;
     unsigned int sum = min(reader.factors[1] % 10 + 10, curr_tick);
+    update_factor(reader.factors[1]);
 
     for (unsigned i = 1; i <= sum; i++) {
         osszeg += infection_history[curr_tick - i][y][x];
@@ -122,6 +116,7 @@ unsigned int Solver::infection(unsigned int y, unsigned int x) {
               0 <= c.second and c.second < reader.dimension[1]))
             continue; // lehet fel van cserélve
         unsigned int t = reader.factors[2] % 7 + 3;
+        update_factor(reader.factors[2]);
         unsigned int a;
         if (tick_info[0][y][x].district != tick_info[0][c.first][c.second].district) { a = 2; }
         else if (y != c.first or x != c.second) { a = 1; }
@@ -155,15 +150,14 @@ unsigned int Solver::healing(unsigned int y, unsigned int x) {
                 min_infection_rate = curr_infection_rate;
             }
         }
-        return size_t(floor(min_infection_rate) * (reader.factors[0] % 10) / 20.0);
+        auto result = size_t(floor(min_infection_rate) * (reader.factors[0] % 10) / 20.0);
+        update_factor(reader.factors[0]);
+        return result;
     } else {
         return 0;
     }
 }
 
-void Solver::update_factors() {
-    //factor = factor * 48271 % 0x7fffffff
-    for(size_t i = 0; i < 4; i++){
-        reader.factors[i] = (reader.factors[i] * 48271) % 0x7fffffff; //lehet kell zárójel % előtt?
-    }
+void Solver::update_factor(uint32_t& factor) {
+    factor = (factor * 48271) % 0x7fffffff; //lehet kell zárójel % előtt?
 }
