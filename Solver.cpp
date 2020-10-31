@@ -35,6 +35,7 @@ vector<string> Solver::process(const vector<string> &infos) {
         for (size_t y = 0; y < reader.dimension[0]; y++) {
             if (reader.areas[y][x].infectionRate > 0) {
                 unsigned int h = healing(y, x);
+                reader.areas[y][x].healthRate += h;
                 heal[y][x] = h;
                 reader.areas[y][x].infectionRate = reader.areas[y][x].infectionRate - h;
                 if(reader.areas[y][x].infectionRate < 0) {
@@ -54,18 +55,22 @@ vector<string> Solver::process(const vector<string> &infos) {
                 if (reader.areas[y][x].infectionRate > 0) {
                     infection_history[0][y][x] = 1;
                 }
-            } else {
+            } else if(not_clean_districts.find(reader.areas[y][x].district) != not_clean_districts.end()){
                 unsigned int inf = infection(y, x);
+                if ((inf + reader.areas[y][x].healthRate + reader.areas[y][x].infectionRate) > 100) {
+                    inf = 100 - reader.areas[y][x].healthRate - reader.areas[y][x].infectionRate ;
+                }
+
                 infection_history[reader.data[1]][y][x] = inf;
                 reader.areas[y][x].infectionRate += inf;
-                if (reader.areas[y][x].infectionRate > 100) {
-                    reader.areas[y][x].infectionRate = 100;
-                }
+
             }
         }
     }
 
     load_tick_info();
+
+    load_clean_districts();
 
     // Válasz
     stringstream ss;
@@ -169,7 +174,7 @@ unsigned int Solver::infection(unsigned int y, unsigned int x) {
     avg_plus_sum_infection_rate = avg_infection_rate + sum_infection_rate;
     unsigned int solution = ceil(avg_plus_sum_infection_rate * float(((reader.factors[3] % 25) + 50) )/ 100.0);
     update_factor(reader.factors[3]);
-    infection_history[curr_tick][y][x] = solution;
+    //infection_history[curr_tick][y][x] = solution;
 
     return solution;
 }
@@ -199,4 +204,16 @@ unsigned int Solver::healing(unsigned int y, unsigned int x) {
 
 void Solver::update_factor(uint32_t& factor) {
     factor = uint64_t(factor) * uint64_t(48271) % uint64_t(0x7fffffff); //lehet kell zárójel % előtt?
+}
+
+void Solver::load_clean_districts() {
+    not_clean_districts.clear();
+    for (size_t x = 0; x < reader.dimension[1]; x++) {
+        for (size_t y = 0; y < reader.dimension[0]; y++) {
+         if(reader.areas[y][x].infectionRate >0){
+             not_clean_districts.insert(reader.areas[y][x].district);
+         }
+        }
+    }
+
 }
