@@ -31,16 +31,17 @@ vector<string> Solver::process(const vector<string> &infos) {
     // healing - fertőzöttek gyógyulása
     heal.resize(reader.dimension[0], vector<unsigned int>(reader.dimension[1], 0));
 
-    for (size_t x = 0; x < reader.dimension[1]; x++) {
+    for (size_t x = 0; x <
+                       reader.dimension[1]; x++) { // oszlop és sorfolytonos indexelés, ez fontos, mert számít hogy a faktorok melyik iterációban frissülnek
         for (size_t y = 0; y < reader.dimension[0]; y++) {
             if (reader.areas[y][x].infectionRate > 0) {
                 unsigned int h = healing(y, x);
-                reader.areas[y][x].healthRate += h;
-                heal[y][x] = h;
-                reader.areas[y][x].infectionRate = reader.areas[y][x].infectionRate - h;
-                if (reader.areas[y][x].infectionRate < 0) {
-                    reader.areas[y][x].infectionRate = 0;
+                if (reader.areas[y][x].infectionRate - h < 0) {
+                    h = reader.areas[y][x].infectionRate;
                 }
+                heal[y][x] = h;
+                reader.areas[y][x].healthRate += h;
+                reader.areas[y][x].infectionRate = reader.areas[y][x].infectionRate - h;
             }
         }
     }
@@ -89,19 +90,21 @@ void Solver::load_tick_info() {
 }
 
 unsigned int Solver::infection(unsigned int y, unsigned int x) {
-    double avg_plus_sum_infection_rate;
-    double avg_infection_rate;
-    double sum_infection_rate = 0;
     unsigned int curr_tick = reader.data[1];
 
-    double osszeg = 0.0;
-    double sum = min(reader.factors[1] % 10 + 10, curr_tick);
+    unsigned int n = min(reader.factors[1] % 10 + 10, curr_tick); // rekurzív visszalépések száma (számláló): 10. tick alatt curr_tick, 11. tick-től {10,...20} közül valami
     update_factor(reader.factors[1]);
 
-    for (std::size_t i = 1; i <= sum; i++) {
-        osszeg += infection_history[curr_tick - i][y][x];
+    unsigned int t = reader.factors[2] % 7 + 3; // átfertőződési hajlandóság: {3,...10} közül valami
+    update_factor(reader.factors[2]);
+
+    // ázlagos átfertőződés
+    double avg_infection_rate;
+    double sum = 0;
+    for (std::size_t i = 1; i <= n; i++) {
+        sum += infection_history[curr_tick - i][y][x];
     }
-    avg_infection_rate = osszeg / sum; // tick = 0ra ez nem jó
+    avg_infection_rate = sum / n; // 0-val osztás nem lehet, mert 0.tick-re nincs meghívva
 
     vector<std::pair<int, int>> neighbours{{0,  0},
                                            {-1, 0},
@@ -109,36 +112,36 @@ unsigned int Solver::infection(unsigned int y, unsigned int x) {
                                            {1,  0},
                                            {0,  1}};
 
-    unsigned int t = reader.factors[2] % 7 + 3;
-    update_factor(reader.factors[2]);
-
-    for (auto n:neighbours) {
-        pair<int, int> c{y - n.first, x - n.second};
+    // additív átfertőződés
+    double sum_infection_rate = 0;
+    for (auto nbs : neighbours) {
+        pair<int, int> c (y - nbs.first, x - nbs.second);
 
         if (!(0 <= c.first and c.first < reader.dimension[0] and
-              0 <= c.second and c.second < reader.dimension[1]))
+              0 <= c.second and c.second < reader.dimension[1])) // határpontok szomszédait nem vizsgáljuk
         {
             continue;
         }
 
-        unsigned int a;
-        if (tick_info[0][y][x].district != tick_info[0][c.first][c.second].district) { a = 2; } // különböző kerületben vannak
-        else if (y != c.first or x != c.second) { a = 1; }                                      // azonos kerületben vannak
-        else { a = 0; }                                                                         // a terület önmaga
+        // dist kiszámítása
+        unsigned int dist; // távolság {0,...2] közül valami
+        if (tick_info[0][y][x].district != tick_info[0][c.first][c.second].district) { dist = 2; } // különböző kerületben vannak
+        else if (y != c.first or x != c.second) { dist = 1; } // azonos kerületben vannak
+        else { dist = 0; } // a terület önmaga
 
-        if (tick_info[curr_tick - 1][c.first][c.second].infectionRate > t * a) {
-            sum_infection_rate +=
-                    double(clamp(int(tick_info[0][y][x].population - tick_info[0][c.first][c.second].population), 0, 2) +
-                          1);
-        } else {
-            sum_infection_rate += 0.0;
+        // sum_infection_rate kiszámítása a szomszédos fertőző területek népessége alapján, ha eléggé fertőzőek voltak előző körben
+        if (tick_info[curr_tick - 1][c.first][c.second].infectionRate > t * dist) {
+            double population_diff = clamp(int(tick_info[0][y][x].population - tick_info[0][c.first][c.second].population), 0, 2) + 1;
+            // helyek populációs különbsége: {1,...3} közül valami
+            // clamp(n, lower, upper): ha n < lower, akkor lower; ha n > upper, akkor upper; különben n
+            sum_infection_rate += population_diff;
         }
     }
 
-    avg_plus_sum_infection_rate = avg_infection_rate + sum_infection_rate;
-    unsigned int solution = ceil((avg_plus_sum_infection_rate * double((reader.factors[3] % 25) + 50)) / 100.0);
+    double rand = (reader.factors[3] % 25) + 50; // {50,...75} közé eső valami
     update_factor(reader.factors[3]);
-    return solution;
+
+    return ceil((avg_infection_rate + sum_infection_rate) *  rand / 100);
 }
 
 unsigned int Solver::healing(unsigned int y, unsigned int x) {
@@ -179,7 +182,7 @@ void Solver::load_clean_districts() {
     }
 }
 
-void Solver::answer_msg(vector<std::string> & commands) {
+void Solver::answer_msg(vector<std::string> &commands) {
     stringstream ss;
     string command;
 
