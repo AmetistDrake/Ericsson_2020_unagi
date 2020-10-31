@@ -129,16 +129,16 @@ void Solver::load_tick_info() {
 }
 
 unsigned int Solver::infection(unsigned int y, unsigned int x) {
-    unsigned int avg_plus_sum_infection_rate;
-    unsigned int avg_infection_rate;
-    unsigned int sum_infection_rate = 0;
+   float avg_plus_sum_infection_rate;
+   float avg_infection_rate;
+   float sum_infection_rate = 0;
     unsigned int curr_tick = reader.data[1];
 
-    unsigned int osszeg = 0;
-    unsigned int sum = min(reader.factors[1] % 10 + 10, curr_tick);
+    float osszeg = 0;
+    float sum = min(reader.factors[1] % 10 + 10, curr_tick);
     update_factor(reader.factors[1]);
 
-    for (unsigned i = 1; i <= sum; i++) {
+    for (std::size_t i = 1; i <= sum; i++) {
         osszeg += infection_history[curr_tick - i][y][x];
     }
     avg_infection_rate = osszeg / sum ; // tick = 0ra ez nem jó
@@ -164,14 +164,14 @@ unsigned int Solver::infection(unsigned int y, unsigned int x) {
         else { a = 0; }
         if (tick_info[curr_tick - 1][c.first][c.second].infectionRate > t * a) {
             sum_infection_rate +=
-                    clamp(int(tick_info[0][y][x].population - tick_info[0][c.first][c.second].population), 0, 2) + 1;
+                    float(clamp(int(tick_info[0][y][x].population - tick_info[0][c.first][c.second].population), 0, 2) + 1);
         } else {
             sum_infection_rate += 0;
         }
     }
 
     avg_plus_sum_infection_rate = avg_infection_rate + sum_infection_rate;
-    unsigned int solution = ceil(avg_plus_sum_infection_rate * ((reader.factors[3] % 25) + 50) / 100.0);
+    unsigned int solution = ceil(avg_plus_sum_infection_rate * float(((reader.factors[3] % 25) + 50) )/ 100.0);
     update_factor(reader.factors[3]);
     infection_history[curr_tick][y][x] = solution;
     return solution;
