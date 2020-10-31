@@ -4,6 +4,8 @@
 #include <cmath>
 #include <algorithm>
 
+// kerület ha 0 akkor nincs infection
+
 using namespace std;
 
 Solver::Solver() = default;
