@@ -94,7 +94,7 @@ unsigned int Solver::infection(unsigned int y, unsigned int x) {
     double sum_infection_rate = 0;
     unsigned int curr_tick = reader.data[1];
 
-    double osszeg = 0;
+    double osszeg = 0.0;
     double sum = min(reader.factors[1] % 10 + 10, curr_tick);
     update_factor(reader.factors[1]);
 
@@ -117,22 +117,26 @@ unsigned int Solver::infection(unsigned int y, unsigned int x) {
 
         if (!(0 <= c.first and c.first < reader.dimension[0] and
               0 <= c.second and c.second < reader.dimension[1]))
+        {
             continue;
+        }
+
         unsigned int a;
-        if (tick_info[0][y][x].district != tick_info[0][c.first][c.second].district) { a = 2; }
-        else if (y != c.first or x != c.second) { a = 1; }
-        else { a = 0; }
+        if (tick_info[0][y][x].district != tick_info[0][c.first][c.second].district) { a = 2; } // különböző kerületben vannak
+        else if (y != c.first or x != c.second) { a = 1; }                                      // azonos kerületben vannak
+        else { a = 0; }                                                                         // a terület önmaga
+
         if (tick_info[curr_tick - 1][c.first][c.second].infectionRate > t * a) {
             sum_infection_rate +=
                     double(clamp(int(tick_info[0][y][x].population - tick_info[0][c.first][c.second].population), 0, 2) +
                           1);
         } else {
-            sum_infection_rate += 0;
+            sum_infection_rate += 0.0;
         }
     }
 
     avg_plus_sum_infection_rate = avg_infection_rate + sum_infection_rate;
-    unsigned int solution = ceil(avg_plus_sum_infection_rate * double((reader.factors[3] % 25) + 50) / 100.0);
+    unsigned int solution = ceil((avg_plus_sum_infection_rate * double((reader.factors[3] % 25) + 50)) / 100.0);
     update_factor(reader.factors[3]);
     return solution;
 }
