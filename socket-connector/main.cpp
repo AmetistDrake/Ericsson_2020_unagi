@@ -163,7 +163,7 @@ int main(int argc, char** argv) { // argc = argument count, argv = argument vect
 		(argc > 1 && 0 == std::strcmp("console", argv[1])); // ha console-ról akar kommunikálni a client, akkor be kell írnia
 
 	/* config area */
-	const char host_name[] = "127.0.0.1";//"ericsson.dyndns.org";
+	const char host_name[] = "nagyd.ddns.net"; //"127.0.0.1";//"ericsson.dyndns.org";
 	const unsigned short port = 1234; //11223;
 	const char token[] = "Y6oosTdXL";
 	int seed = 0;
