@@ -8,8 +8,11 @@
 class Solver {
 private:
   Reader reader;
+
   std::vector<std::vector<std::vector<Area>>> tick_info;
-  std::vector<std::vector<std::vector<unsigned int >>> infection_history;
+  std::vector<std::vector<std::vector<unsigned int>>> infection_history;
+  std::vector<std::vector<unsigned int>> heal;
+
   void load_tick_info();
   unsigned int healing(unsigned int y, unsigned int x);
   unsigned int infection(unsigned int y,  unsigned int x);

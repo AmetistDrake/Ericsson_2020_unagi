@@ -42,8 +42,6 @@ public:
 			message += i + '\n';
 			cout << i << endl;
 		}
-		message += ".\n";
-		cout << ".\n";
 
 		int sent_bytes = _connector->send(message.c_str(), message.size());
 
