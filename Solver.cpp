@@ -63,7 +63,6 @@ vector<string> Solver::process(const vector<string> &infos) {
 
                 infection_history[reader.data[1]][y][x] = inf;
                 reader.areas[y][x].infectionRate += inf;
-
             }
         }
     }
@@ -174,8 +173,6 @@ unsigned int Solver::infection(unsigned int y, unsigned int x) {
     avg_plus_sum_infection_rate = avg_infection_rate + sum_infection_rate;
     unsigned int solution = ceil(avg_plus_sum_infection_rate * float(((reader.factors[3] % 25) + 50) )/ 100.0);
     update_factor(reader.factors[3]);
-    //infection_history[curr_tick][y][x] = solution;
-
     return solution;
 }
 

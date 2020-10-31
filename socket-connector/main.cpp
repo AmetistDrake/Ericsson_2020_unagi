@@ -27,11 +27,15 @@ public:
 		}
 
 		std::vector<std::string> login_messages;
-    std::stringstream ss;
-    string start_command;
-    ss << "START " << token << " " << seed << endl << ".";
-    getline(ss, start_command);
-    login_messages.push_back(start_command);
+        std::stringstream ss;
+        string command;
+        ss << "START " << token << " " << seed;
+        getline(ss, command);
+        login_messages.push_back(command);
+        ss.clear();
+
+        login_messages.emplace_back(".");
+
 		send_messages(login_messages);
 	}
 
@@ -163,8 +167,8 @@ int main(int argc, char** argv) { // argc = argument count, argv = argument vect
 		(argc > 1 && 0 == std::strcmp("console", argv[1])); // ha console-ról akar kommunikálni a client, akkor be kell írnia
 
 	/* config area */
-	const char host_name[] = "nagyd.ddns.net"; //"127.0.0.1";//"ericsson.dyndns.org";
-	const unsigned short port = 1234; //11223;
+	const char host_name[] = "ericsson.dyndns.org"; //"nagyd.ddns.net"; //"127.0.0.1";//;
+	const unsigned short port = 11223; //1234; //
 	const char token[] = "Y6oosTdXL";
 	int seed = 0;
 
