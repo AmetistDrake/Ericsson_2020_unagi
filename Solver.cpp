@@ -153,16 +153,16 @@ unsigned int Solver::infection(unsigned int y, unsigned int x) {
     update_factor(reader.factors[3]);
 
     double r = (double(double(sum)/double(n)) + double(sum_infection_rate)) *  double(rand) / 100;
-    unsigned int result = ceil(round(r*1000000)/1000000);
+    unsigned int result = ceil(round(r*1000)/1000);
 
-    if (reader.data[1] == 29 && y == 40 && x == 8) {
-        cout << "sum: " << sum << endl;
-        cout << "n: " << n << endl;
-        cout << "sum inf: " << sum_infection_rate << endl;
-        cout << "rand: " << rand << endl;
-        cout << "r: " << r << endl;
-        cout << "result: " << result << endl << endl;
-    }
+//    if (reader.data[1] == 29 && y == 40 && x == 8) {
+//        cout << "sum: " << sum << endl;
+//        cout << "n: " << n << endl;
+//        cout << "sum inf: " << sum_infection_rate << endl;
+//        cout << "rand: " << rand << endl;
+//        cout << "r: " << r << endl;
+//        cout << "result: " << result << endl << endl;
+//    }
 
     return result;
 }
