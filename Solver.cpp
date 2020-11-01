@@ -99,12 +99,10 @@ unsigned int Solver::infection(unsigned int y, unsigned int x) {
     update_factor(reader.factors[2]);
 
     // ázlagos átfertőződés
-    double avg_infection_rate;
-    double sum = 0;
+    unsigned int sum = 0;
     for (std::size_t i = 1; i <= n; i++) {
         sum += infection_history[curr_tick - i][y][x];
     }
-    avg_infection_rate = sum / n; // 0-val osztás nem lehet, mert 0.tick-re nincs meghívva
 
     vector<std::pair<int, int>> neighbours{{0,  0},
                                            {-1, 0},
@@ -113,7 +111,7 @@ unsigned int Solver::infection(unsigned int y, unsigned int x) {
                                            {0,  1}};
 
     // additív átfertőződés
-    double sum_infection_rate = 0;
+    unsigned int sum_infection_rate = 0;
     for (auto nbs : neighbours) {
         pair<int, int> c (y - nbs.first, x - nbs.second);
 
@@ -129,19 +127,44 @@ unsigned int Solver::infection(unsigned int y, unsigned int x) {
         else if (y != c.first or x != c.second) { dist = 1; } // azonos kerületben vannak
         else { dist = 0; } // a terület önmaga
 
+        if (reader.data[1] == 13 && y == 19 && x == 17) {
+//            cout << "dist: " << dist << endl;
+//            cout << "t: " << t << endl;
+//            cout << "t * dist: " << t*dist << endl;
+//            cout << "prev inf rate: " << tick_info[curr_tick - 1][c.first][c.second].infectionRate << endl;
+        }
+
         // sum_infection_rate kiszámítása a szomszédos fertőző területek népessége alapján, ha eléggé fertőzőek voltak előző körben
         if (tick_info[curr_tick - 1][c.first][c.second].infectionRate > t * dist) {
-            double population_diff = clamp(int(tick_info[0][y][x].population - tick_info[0][c.first][c.second].population), 0, 2) + 1;
+            unsigned int population_diff = clamp(int(tick_info[0][y][x].population - tick_info[0][c.first][c.second].population), 0, 2) + 1;
+            if (reader.data[1] == 13 && y == 19 && x == 17) {
+//                cout << "first population: " << tick_info[0][y][x].population << endl;
+//                cout << "second population: " << tick_info[0][c.first][c.second].population << endl;
+//                cout << "population diff: " << population_diff << endl;
+            }
+
             // helyek populációs különbsége: {1,...3} közül valami
             // clamp(n, lower, upper): ha n < lower, akkor lower; ha n > upper, akkor upper; különben n
             sum_infection_rate += population_diff;
         }
     }
 
-    double rand = (reader.factors[3] % 25) + 50; // {50,...75} közé eső valami
+    unsigned int rand = (reader.factors[3] % 25) + 50; // {50,...75} közé eső valami
     update_factor(reader.factors[3]);
 
-    return ceil((avg_infection_rate + sum_infection_rate) *  rand / 100);
+    double r = (double(double(sum)/double(n)) + double(sum_infection_rate)) *  double(rand) / 100;
+    unsigned int result = ceil(round(r*1000000)/1000000);
+
+    if (reader.data[1] == 29 && y == 40 && x == 8) {
+        cout << "sum: " << sum << endl;
+        cout << "n: " << n << endl;
+        cout << "sum inf: " << sum_infection_rate << endl;
+        cout << "rand: " << rand << endl;
+        cout << "r: " << r << endl;
+        cout << "result: " << result << endl << endl;
+    }
+
+    return result;
 }
 
 unsigned int Solver::healing(unsigned int y, unsigned int x) {

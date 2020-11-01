@@ -172,10 +172,10 @@ int main(int argc, char **argv) { // argc = argument count, argv = argument vect
                                                             argv[1])); // ha console-ról akar kommunikálni a client, akkor be kell írnia
 
     /* config area */
-    const char host_name[] = "nagyd.ddns.net"; //"127.0.0.1";//;"ericsson.dyndns.org"
-    const unsigned short port = 1234; //; //11223
+    const char host_name[] = "ericsson.dyndns.org";//"127.0.0.1";//;"nagyd.ddns.net";
+    const unsigned short port = 11223; //; 1234;
     const char token[] = "Y6oosTdXL";
-    int seed = 0;
+    int seed = 2;
 
     try {
         client(from_console ? static_cast<std::unique_ptr<connector>>(std::make_unique<console_connector>()) :
