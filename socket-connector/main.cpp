@@ -1,14 +1,15 @@
 #include "console_connector.h"
 #include "socket_connector.h"
 #include "Solver.h"
+#include "win32-draw/Draw.hpp"
 
+#include <windows.h>
 #include <iostream>
 #include <memory>
 #include <sstream>
 #include <vector>
 #include <stdexcept>
 #include <chrono>
-#include <cstring>
 #include <ctime>
 
 using namespace std;
@@ -20,7 +21,7 @@ class client {
     Solver your_solver;
 public:
     client(std::unique_ptr<connector> conn, int process_timeout_ms, const char token[], int seed)
-            : _connector(std::move(conn)), process_timeout_s(process_timeout_ms / 1000.) {
+            : process_timeout_s(process_timeout_ms / 1000.), _connector(std::move(conn)) {
         if (!_connector->is_valid()) {
             std::cerr << "[main] " << "Not a valid connector" << std::endl;
             return;
@@ -39,10 +40,10 @@ public:
         send_messages(login_messages);
     }
 
-    void send_messages(const std::vector<std::string> &messages) {
+    void send_messages(const std::vector<std::string>& messages) {
         std::string message;
 
-        for (const auto &i : messages) {
+        for (const auto& i : messages) {
             message += i + '\n';
             cout << i << endl;
         }
@@ -83,14 +84,17 @@ public:
 
             switch (received_bytes) {
                 case -1:
-                    std::cerr << "[main] " << "Error: recv failed!" << std::endl;
+                    std::cerr << "[main] " << "Error: recv failed!\n";
+                    break;
                 case 0:
-                    std::cerr << "[main] " << "Connection closed." << std::endl;
+                    std::cerr << "[main] " << "Connection closed.\n";
                     _connector->invalidate();
                     if (!result.empty()) {
-                        std::cerr << "[main] " << "Latest message processing ..." << std::endl;
+                        std::cerr << "[main] " << "Latest message processing ...\n";
                     }
                     return result;
+                default:
+                    break;
             }
             array_buffer[received_bytes] = '\0';
             if (!curr_buffer.empty() && curr_buffer.back() != '\n') {
@@ -104,13 +108,13 @@ public:
     }
 
 public:
-    void run() {
+    void run(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd) { // a paraméterek a megjelenítő miatt kellenek
         while (_connector->is_valid()) {
             auto measure_start = std::chrono::steady_clock::now();
 
             std::vector<std::string> tmp = receive_message();
 
-            for (const auto &response : tmp) {
+            for (const auto& response : tmp) {
                 cout << response << endl;
             }
 
@@ -162,25 +166,26 @@ public:
                 }
             }
         }
+
+        Draw d(hInstance, hPrevInstance, lpCmdLine, nShowCmd);
+        d.draw(your_solver.get_display_info());
+
         std::cerr << "[main] " << "Game over" << std::endl;
     }
 };
 
-int main(int argc, char **argv) { // argc = argument count, argv = argument vector, char** = dinamikus string tömb
-    const bool from_console = argc > 2 && 0 == std::strcmp("console", argv[2]) ||
-                              (argc > 1 && 0 == std::strcmp("console",
-                                                            argv[1])); // ha console-ról akar kommunikálni a client, akkor be kell írnia
-
+//int main(int argc, char **argv) { // argc = argument count, argv = argument vector, char** = dinamikus string tömb
+int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd) { // msdn entry point
     /* config area */
-    const char host_name[] = "ericsson.dyndns.org";//"127.0.0.1";//;"nagyd.ddns.net";
-    const unsigned short port = 11223; //; 1234;
+    const char host_name[] = "nagyd.ddns.net";
+    const unsigned short port = 1234;
     const char token[] = "Y6oosTdXL";
     int seed = 2;
 
     try {
-        client(from_console ? static_cast<std::unique_ptr<connector>>(std::make_unique<console_connector>()) :
-               std::make_unique<socket_connector>(host_name, port), from_console ? 200 : 2000, token, seed).run();
-    } catch (std::exception &e) {
+        client(std::make_unique<socket_connector>(host_name, port), 2000, token, seed).run(hInstance, hPrevInstance, lpCmdLine, nShowCmd);
+    } catch (std::exception& e) {
         std::cerr << "[main] " << "Exception throwed. what(): " << e.what() << std::endl;
     }
+    return 0;
 }
