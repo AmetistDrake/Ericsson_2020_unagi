@@ -1,12 +1,7 @@
 // Load the TCP Library
 net = require('net');
-http = require('http');
-const GameDisplay = require('./GameDisplay');
 
 // Keep track of the chat clients
-
-const reader = new GameDisplay.Reader();
-
 let clients = [];
 
 let gameid = 1;
@@ -84,8 +79,6 @@ const server = net.createServer(function (socket) {
         if (message[0].includes("START")) {
             response = startData();
 
-            reader.loadData(response);
-
             socket.write(response);
             response = reqStartData();
             socket.write(response);
@@ -95,27 +88,6 @@ const server = net.createServer(function (socket) {
             tick++;
             if (tick < 44) {
                 response = reqData(tick);
-
-                let infections = [];
-                for (let j = 1; j < message.length; j++) {
-                    words = message[j].split(" ");
-                    infections.push(words);
-                }
-
-                for (let y = 0; y < reader.dimension[0]; y++) {
-                    for (let x = 0; x < reader.dimension[1]; x++) {
-                        if (!reader.gameHistory[tick]) {
-                            reader.gameHistory[tick] = [];
-                        }
-                        if (!reader.gameHistory[tick][y]) {
-                            reader.gameHistory[tick][y] = [];
-                        }
-
-                        reader.gameHistory[tick][y][x] = new GameDisplay.Area();
-                        reader.gameHistory[tick][y][x].infectionRate = infections[y][x];
-                    }
-                }
-
                 socket.write(response);
             } else {
                 socket.end();
@@ -135,10 +107,3 @@ const server = net.createServer(function (socket) {
 });
 
 server.listen(1234, () => console.log(`Listening on port 1234!`));
-
-const server2 = http.createServer((req, res) => {
-    res.writeHead(200, {"Content-Type" : "text/html"});
-    res.write("<canvas style='border: 1px solid black; height: 100%; width: 100%'></canvas>");
-});
-
-server2.listen(3000, () => console.log("Listening on port 3000!"))
