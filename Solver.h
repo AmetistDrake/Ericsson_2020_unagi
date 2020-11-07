@@ -5,7 +5,6 @@
 #include <vector>
 #include "Reader.h"
 #include <unordered_set>
-#include "DisplayInfo.hpp"
 
 
 class Solver {
@@ -27,7 +26,7 @@ public:
     Solver();
     ~Solver();
     std::vector<std::string> process(const std::vector<std::string>& infos);
-    DisplayInfo get_display_info();
+    std::vector<std::vector<std::vector<std::vector<std::string>>>> field_display; // field_info[tick][y][x][message_index]
 };
 
 

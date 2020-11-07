@@ -22,7 +22,3 @@ Solver::Solver() = default;
 Solver::~Solver() {
     std::cerr << "END (message): " << reader.message << std::endl;
 }
-
-DisplayInfo Solver::get_display_info() {
-    return DisplayInfo(infection_history, healing_history);
-}

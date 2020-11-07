@@ -168,7 +168,7 @@ public:
         }
 
         Draw d(hInstance, hPrevInstance, lpCmdLine, nShowCmd);
-        // d.draw(your_solver.get_display_info());
+        d.draw(your_solver.field_display);
 
         std::cerr << "[main] " << "Game over" << std::endl;
     }

@@ -3,7 +3,7 @@
 
 #include "windows.h"
 #include <iostream>
-#include "DisplayInfo.hpp"
+#include <vector>
 
 class Draw {
 private:
@@ -15,10 +15,10 @@ private:
     static LRESULT CALLBACK window_callback(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 public:
     Draw() = delete;
-    Draw(HINSTANCE _hInstance, HINSTANCE _hPrevInstance, LPSTR _lpCmdLine, int _nShowCmd) : hInstance(_hInstance), hPrevInstance(_hPrevInstance), lpCmdLine(_lpCmdLine), nShowCmd(_nShowCmd){};
+    Draw(HINSTANCE _hInstance, HINSTANCE _hPrevInstance, LPSTR _lpCmdLine, int _nShowCmd);
     ~Draw() = default;
 
-    void draw(DisplayInfo displayInfo);
+    void draw(const std::vector<std::vector<std::vector<std::vector<std::string>>>>& field_info);
 };
 
 

@@ -22,7 +22,6 @@ add_executable(ericsson-socket_connector
         socket-connector/socket_connector.h
         win32-draw/Draw.cpp
         win32-draw/Draw.hpp
-        DisplayInfo.hpp
         Solver.cpp
         Solver.h
         Reader.cpp
