@@ -183,13 +183,27 @@ void Solver::answer_msg(vector<std::string>& commands) {
     commands.push_back(command);
     ss.clear();
 
-    for (auto& row : reader.areas) {
-        for (auto& area : row) {
-            ss << area.infectionRate << " ";
-        }
+    for (const auto& b : BACK) {
+        ss << "BACK " << b.y << " " << b.x << " " << b.val << "\n";
         getline(ss, command);
         commands.push_back(command);
         ss.clear();
     }
+
+    for (const auto p : PUT) {
+        ss << "PUT " << p.y << " " << p.x << " " << p.val << "\n";
+        getline(ss, command);
+        commands.push_back(command);
+        ss.clear();
+    }
+
+//    for (auto& row : reader.areas) {
+//        for (auto& area : row) {
+//            ss << area.infectionRate << " ";
+//        }
+//        getline(ss, command);
+//        commands.push_back(command);
+//        ss.clear();
+//    }
     commands.emplace_back(".");
 }

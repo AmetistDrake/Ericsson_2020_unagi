@@ -6,15 +6,19 @@
 #include "Reader.h"
 #include <unordered_set>
 
-
 class Solver {
 private:
     Reader reader;
+    struct Action {
+        unsigned int y,x,val;
+    };
 
     std::vector<std::vector<std::vector<Area>>> tick_info;
     std::vector<std::vector<std::vector<unsigned int>>> infection_history;
     std::vector<std::vector<std::vector<unsigned int>>> healing_history;
     std::unordered_set<unsigned int> infected_districts;
+    std::vector<Action> BACK;
+    std::vector<Action> PUT;
 
     unsigned int healing(unsigned int y, unsigned int x);
     unsigned int infection(unsigned int y, unsigned int x);

@@ -5,12 +5,13 @@ net = require('net');
 let clients = [];
 
 let vaccine_data = []; // ID = country ID, TPC = total production capacity, RV = reserved vaccines, ASID =
-let safe = [[0, 2], [1, 3]];
-let warn = ["message0", "message1"];
+let safe = [];
+let warn = [];
 
 let test1 = [
-    [1, 44, 3, 6, 4], // gameID, maxtick, countries_count, y, x
-    [[0, 10, 10], [1, 20, 5],[2, 15, 7]], // country start data: countryID, TPC, RV
+    [1, 44], // gameID, maxtick,
+    [6, 4], // y, x
+    [[0, 10, 10]], // country start data: countryID, TPC, RV
     [1569741360, 1785505948, 516548029, 1302116447],
     [[[1, 0, 5], [1, 1, 1], [1, 0, 5], [3, 0, 5]],
      [[0, 0, 5], [1, 0, 4], [3, 2, 1], [3, 0, 2]],
@@ -29,13 +30,13 @@ function reqData(tick) {
     }
 
     if(tick === -1) {
-        response += "START " + String(test[0][0]) + " " + String(test[0][1]) + " " + String(test[0][2]) + "\n"; // START <game-id> <max-tick> <countries-count>
-        response += "FACTORS " + String(test[2][0]) + " " + String(test[2][1]) + " " + String(test[2][2]) + " " + String(test[2][3]) + "\n"; // FACTORS <factor-1> <factor-2> <factor-3> <factor-4>
-        response += "FIELDS " + String(test[0][3]) + " " + String(test[0][4]) + "\n"; // FIELDS <rows> <columns>
+        response += "START " + String(test[0][0]) + " " + String(test[0][1]) + " " + String(test[2].length) + "\n"; // START <game-id> <max-tick> <countries-count>
+        response += "FACTORS " + String(test[3][0]) + " " + String(test[3][1]) + " " + String(test[3][2]) + " " + String(test[3][3]) + "\n"; // FACTORS <factor-1> <factor-2> <factor-3> <factor-4>
+        response += "FIELDS " + String(test[1][0]) + " " + String(test[1][1]) + "\n"; // FIELDS <rows> <columns>
 
-        for (let y = 0; y < test[0][3]; y++) {
-            for (let x = 0; x < test[0][4]; x++) {
-                response += "FD " + String(y) + " " + String(x) + " " + String(test[3][y][x][0]) + " " + String(test[3][y][x][1]) + " " + String(test[3][y][x][2]) + "\n";
+        for (let y = 0; y < test[1][0]; y++) { // <rows>
+            for (let x = 0; x < test[1][1]; x++) { // <columns>
+                response += "FD " + String(y) + " " + String(x) + " " + String(test[4][y][x][0]) + " " + String(test[4][y][x][1]) + " " + String(test[4][y][x][2]) + "\n"; // FD <y> <x> <district> <inf_rate> <popul>
             }
         }
         response += ".";
@@ -43,15 +44,15 @@ function reqData(tick) {
     }
     else
     {
-        response = "REQ " + String(test[0][0]) + " " + String(tick) + " " + String(test[1][0][0]) + "\n"; // REQ <game-id> <tick-id> <your-country-id>
+        response = "REQ " + String(test[0][0]) + " " + String(tick) + " " + String(test[2][0][0]) + "\n"; // REQ <game-id> <tick-id> <your-country-id>
 
-        for (let i = 0; i < test[1].length; i++) {
-            response += String(test[1][i][0]) + " " + String(test[1][i][1]) + " " + String(test[1][i][2]) + "\n"; // <country-id> <TPC> <RV>
+        for (let i = 0; i < test[2].length; i++) { // <country-start-data>
+            response += String(test[2][i][0]) + " " + String(test[2][i][1]) + " " + String(test[2][i][2]) + "\n"; // <country-id> <TPC> <RV>
         }
 
         if (tick === 0) {
-            for(let y = 0; y < test[0][3]; y++) {
-                for (let x = 0; x < test[0][4]; x++) {
+            for(let y = 0; y < test[1][0]; y++) { // <rows>
+                for (let x = 0; x < test[1][1]; x++) { // <columns>
                     if (!vaccine_data[y]) {
                         vaccine_data[y] = [];
                     }
@@ -60,8 +61,8 @@ function reqData(tick) {
             }
         }
 
-        for(let y = 0; y < test[0][3]; y++) {
-            for (let x = 0; x < test[0][4]; x++) {
+        for(let y = 0; y < test[1][0]; y++) { // <rows>
+            for (let x = 0; x < test[1][1]; x++) { // <columns>
                 response += "VAC " + String(y) + " " + String(x) + " " + vaccine_data[y][x][0] + " " + vaccine_data[y][x][1] + "\n";
             }
         }
