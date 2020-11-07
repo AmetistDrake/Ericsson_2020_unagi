@@ -4,57 +4,80 @@ net = require('net');
 // Keep track of the chat clients
 let clients = [];
 
-let gameid = 1;
-let maxtick = 44;
-let coutries_count = 0;
-let factor1 = 1569741360;
-let factor2 = 1785505948;
-let factor3 = 516548029;
-let factor4 = 1302116447;
+let vaccine_data = []; // ID = country ID, TPC = total production capacity, RV = reserved vaccines, ASID =
+let safe = [[0, 2], [1, 3]];
+let warn = ["message0", "message1"];
+
+let test1 = [
+    [1, 44, 3, 6, 4], // gameID, maxtick, countries_count, y, x
+    [[0, 10, 10], [1, 20, 5],[2, 15, 7]], // country start data: countryID, TPC, RV
+    [1569741360, 1785505948, 516548029, 1302116447],
+    [[[1, 0, 5], [1, 1, 1], [1, 0, 5], [3, 0, 5]],
+     [[0, 0, 5], [1, 0, 4], [3, 2, 1], [3, 0, 2]],
+     [[0, 1, 1], [2, 0, 5], [3, 0, 5], [5, 0, 5]],
+     [[0, 0, 2], [2, 1, 1], [2, 0, 4], [5, 2, 1]],
+     [[0, 0, 5], [2, 0, 5], [5, 0, 4], [5, 0, 3]],
+     [[4, 0, 5], [4, 1, 1], [4, 0, 2], [4, 0, 5]]]
+];
 
 function reqData(tick) {
-    let response = "REQ " + String(gameid) + " " + String(tick) + " " + String(coutries_count) + "\n.";
-    console.log(response);
-    return response;
-}
-
-function reqStartData() {
-    let response = "REQ " + String(gameid) + " " + String(0) + " " + String(coutries_count) + "\n.";
-    console.log(response);
-    return response;
-}
-
-function startData() {
+    let test = test1;
     let response = "";
-        response += "START " + String(gameid) + " " + String(maxtick) + " " + String(coutries_count) + "\n";
-        response += "FACTORS " + String(factor1) + " " + String(factor2) + " " + String(factor3) + " " + String(factor4) + "\n";
-        response += "FIELDS 6 4\n";
-        response += "FD " + String(0) + " " + String(0) + " " + String(1) + " " + String(0) + " " + String(5) + "\n";
-        response += "FD " + String(0) + " " + String(1) + " " + String(1) + " " + String(1) + " " + String(1) + "\n";
-        response += "FD " + String(0) + " " + String(2) + " " + String(1) + " " + String(0) + " " + String(5) + "\n";
-        response += "FD " + String(0) + " " + String(3) + " " + String(3) + " " + String(0) + " " + String(5) + "\n";
-        response += "FD " + String(1) + " " + String(0) + " " + String(0) + " " + String(0) + " " + String(5) + "\n";
-        response += "FD " + String(1) + " " + String(1) + " " + String(1) + " " + String(0) + " " + String(4) + "\n";
-        response += "FD " + String(1) + " " + String(2) + " " + String(3) + " " + String(2) + " " + String(1) + "\n";
-        response += "FD " + String(1) + " " + String(3) + " " + String(3) + " " + String(0) + " " + String(2) + "\n";
-        response += "FD " + String(2) + " " + String(0) + " " + String(0) + " " + String(1) + " " + String(1) + "\n";
-        response += "FD " + String(2) + " " + String(1) + " " + String(2) + " " + String(0) + " " + String(5) + "\n";
-        response += "FD " + String(2) + " " + String(2) + " " + String(3) + " " + String(0) + " " + String(5) + "\n";
-        response += "FD " + String(2) + " " + String(3) + " " + String(5) + " " + String(0) + " " + String(5) + "\n";
-        response += "FD " + String(3) + " " + String(0) + " " + String(0) + " " + String(0) + " " + String(2) + "\n";
-        response += "FD " + String(3) + " " + String(1) + " " + String(2) + " " + String(1) + " " + String(1) + "\n";
-        response += "FD " + String(3) + " " + String(2) + " " + String(2) + " " + String(0) + " " + String(4) + "\n";
-        response += "FD " + String(3) + " " + String(3) + " " + String(5) + " " + String(2) + " " + String(1) + "\n";
-        response += "FD " + String(4) + " " + String(0) + " " + String(0) + " " + String(0) + " " + String(5) + "\n";
-        response += "FD " + String(4) + " " + String(1) + " " + String(2) + " " + String(0) + " " + String(5) + "\n";
-        response += "FD " + String(4) + " " + String(2) + " " + String(5) + " " + String(0) + " " + String(4) + "\n";
-        response += "FD " + String(4) + " " + String(3) + " " + String(5) + " " + String(0) + " " + String(3) + "\n";
-        response += "FD " + String(5) + " " + String(0) + " " + String(4) + " " + String(0) + " " + String(5) + "\n";
-        response += "FD " + String(5) + " " + String(1) + " " + String(4) + " " + String(1) + " " + String(1) + "\n";
-        response += "FD " + String(5) + " " + String(2) + " " + String(4) + " " + String(0) + " " + String(2) + "\n";
-        response += "FD " + String(5) + " " + String(3) + " " + String(4) + " " + String(0) + " " + String(5) + "\n";
+
+    if (tick >= test[0][1]) { // tick >= maxtick
+        return response;
+    }
+
+    if(tick === -1) {
+        response += "START " + String(test[0][0]) + " " + String(test[0][1]) + " " + String(test[0][2]) + "\n"; // START <game-id> <max-tick> <countries-count>
+        response += "FACTORS " + String(test[2][0]) + " " + String(test[2][1]) + " " + String(test[2][2]) + " " + String(test[2][3]) + "\n"; // FACTORS <factor-1> <factor-2> <factor-3> <factor-4>
+        response += "FIELDS " + String(test[0][3]) + " " + String(test[0][4]) + "\n"; // FIELDS <rows> <columns>
+
+        for (let y = 0; y < test[0][3]; y++) {
+            for (let x = 0; x < test[0][4]; x++) {
+                response += "FD " + String(y) + " " + String(x) + " " + String(test[3][y][x][0]) + " " + String(test[3][y][x][1]) + " " + String(test[3][y][x][2]) + "\n";
+            }
+        }
         response += ".";
-    console.log(response);
+        console.log(response);
+    }
+    else
+    {
+        response = "REQ " + String(test[0][0]) + " " + String(tick) + " " + String(test[1][0][0]) + "\n"; // REQ <game-id> <tick-id> <your-country-id>
+
+        for (let i = 0; i < test[1].length; i++) {
+            response += String(test[1][i][0]) + " " + String(test[1][i][1]) + " " + String(test[1][i][2]) + "\n"; // <country-id> <TPC> <RV>
+        }
+
+        if (tick === 0) {
+            for(let y = 0; y < test[0][3]; y++) {
+                for (let x = 0; x < test[0][4]; x++) {
+                    if (!vaccine_data[y]) {
+                        vaccine_data[y] = [];
+                    }
+                    vaccine_data[y][x] = [0, 0];
+                }
+            }
+        }
+
+        for(let y = 0; y < test[0][3]; y++) {
+            for (let x = 0; x < test[0][4]; x++) {
+                response += "VAC " + String(y) + " " + String(x) + " " + vaccine_data[y][x][0] + " " + vaccine_data[y][x][1] + "\n";
+            }
+        }
+
+        for(let i = 0; i < safe.length; i++) {
+            response += "SAFE " + String(safe[i][0]) + " " + String(safe[i][1]) + "\n";
+        }
+
+        for(let i = 0; i < warn.length; i++) {
+           response += "WARN " + warn[i] + "\n";
+        }
+
+        response += ".";
+        console.log(response);
+    }
+
     return response;
 }
 
@@ -77,17 +100,16 @@ const server = net.createServer(function (socket) {
         }
 
         if (message[0].includes("START")) {
-            response = startData();
-
+            response = reqData(-1);
             socket.write(response);
-            response = reqStartData();
+            response = reqData(0);
             socket.write(response);
         } else if (message[0].includes("RES")) {
             let words = message[0].split(" ");
             let tick = words[2];
             tick++;
-            if (tick < 44) {
-                response = reqData(tick);
+            response = reqData(tick);
+            if (response !== "") {
                 socket.write(response);
             } else {
                 socket.end();

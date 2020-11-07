@@ -167,7 +167,7 @@ public:
             }
         }
 
-        Draw d(hInstance, hPrevInstance, lpCmdLine, nShowCmd);
+        // Draw d(hInstance, hPrevInstance, lpCmdLine, nShowCmd);
         // d.draw(your_solver.field_display);
 
         std::cerr << "[main] " << "Game over" << std::endl;
@@ -177,7 +177,7 @@ public:
 //int main(int argc, char **argv) { // argc = argument count, argv = argument vector, char** = dinamikus string tömb
 int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd) { // msdn entry point
     /* config area */
-    const char host_name[] = "nagyd.ddns.net";
+    const char host_name[] = "localhost";
     const unsigned short port = 1234;
     const char token[] = "Y6oosTdXL";
     int seed = 2;
