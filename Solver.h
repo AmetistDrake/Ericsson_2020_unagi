@@ -27,6 +27,7 @@ private:
     static void update_factor(uint32_t&);
     void update_infected_districts();
     void answer_msg(std::vector<std::string>&);
+    void vaccine_production();
 
 public:
     Solver();

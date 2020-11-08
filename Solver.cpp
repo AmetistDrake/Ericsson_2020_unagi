@@ -23,9 +23,13 @@ vector<string> Solver::process(const vector<string>& infos) {
     }
     /********************************************/      /// Általános válasz:
 
-    // healing - fertőzöttek gyógyulása
+
     vector<vector<unsigned int>> tmp(reader.dimension[0],
                                      vector<unsigned int>(reader.dimension[1], 0));
+    // 1) vakcina elhelyezés, csoportosítás
+    vaccine_history.push_back(tmp);
+
+    // 2) healing - fertőzöttek gyógyulása
     healing_history.push_back(tmp);
     for (size_t x = 0; x < reader.dimension[1]; x++) { // oszlop és sorfolytonos indexelés, ez fontos, mert számít hogy a faktorok melyik iterációban frissülnek
         for (size_t y = 0; y < reader.dimension[0]; y++) {
@@ -37,8 +41,10 @@ vector<string> Solver::process(const vector<string>& infos) {
             }
         }
     }
+    // 3) megtisztítottról visszekerül az országraktárba
 
-    // infection - vírus terjed
+
+    // 4) infection - vírus terjed
     infection_history.push_back(tmp);
     for (size_t x = 0; x < reader.dimension[1]; x++) {
         for (size_t y = 0; y < reader.dimension[0]; y++) {
@@ -58,6 +64,9 @@ vector<string> Solver::process(const vector<string>& infos) {
             }
         }
     }
+
+    // 5) vakcinagyártás
+    vaccine_production();
 
     tick_info.push_back(reader.areas); // update tick info with current tick
     update_infected_districts();
@@ -197,6 +206,21 @@ unsigned int Solver::healing(unsigned int y, unsigned int x) {
     }
 }
 
+void Solver::vaccine_production() {
+    int country_id = reader.data[2];
+    int sum_of_areas =0;
+for(auto clean: reader.countries[country_id].ASID ){
+    for(auto y:reader.areas){
+        for(auto x:y){
+            if(x.district == clean){
+                sum_of_areas++;
+            }
+        }
+    }
+}
+    reader.countries[country_id].TPC = 2 * sum_of_areas;
+}
+
 void Solver::answer_msg(vector<std::string>& commands) {
     stringstream ss;
     string command;
@@ -230,3 +254,5 @@ void Solver::answer_msg(vector<std::string>& commands) {
 //    }
     commands.emplace_back(".");
 }
+
+

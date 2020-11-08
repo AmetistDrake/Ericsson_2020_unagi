@@ -11,7 +11,7 @@
 struct Country {
     int TPC; //total production capacity
     int RV; //reserved vaccine
-    std::unordered_set<unsigned int> ASID; //meggyógyított területek listája
+    std::unordered_set<unsigned int> ASID; //meggyógyított kerületek listája
 };
 
 struct Area {
