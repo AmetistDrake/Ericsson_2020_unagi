@@ -6,7 +6,7 @@
 
 using namespace std;
 
-vector<string> Solver::process(const vector<string>& infos) {
+vector<string> Solver::process(const vector<string> &infos) {
     /********************************************/      /// A tesztelés a beadott verziótól itt különül el
     if (infos.size() == 1 && infos[0] == "unagi") {     // amikor a consolon keresztül kommunikál a program
         reader.readDataConsole();
@@ -31,7 +31,8 @@ vector<string> Solver::process(const vector<string>& infos) {
 
     // 2) healing - fertőzöttek gyógyulása
     healing_history.push_back(tmp);
-    for (size_t x = 0; x < reader.dimension[1]; x++) { // oszlop és sorfolytonos indexelés, ez fontos, mert számít hogy a faktorok melyik iterációban frissülnek
+    for (size_t x = 0; x <
+                       reader.dimension[1]; x++) { // oszlop és sorfolytonos indexelés, ez fontos, mert számít hogy a faktorok melyik iterációban frissülnek
         for (size_t y = 0; y < reader.dimension[0]; y++) {
             if (reader.areas[y][x].infectionRate > 0) {
                 unsigned int h = healing(y, x);
@@ -42,6 +43,9 @@ vector<string> Solver::process(const vector<string>& infos) {
         }
     }
     // 3) megtisztítottról visszekerül az országraktárba
+    update_infected_districts();
+    cleaned_back();
+
 
 
     // 4) infection - vírus terjed
@@ -65,11 +69,11 @@ vector<string> Solver::process(const vector<string>& infos) {
         }
     }
 
-    // 5) vakcinagyártás
-    vaccine_production();
-
     tick_info.push_back(reader.areas); // update tick info with current tick
     update_infected_districts();
+
+    // 5) vakcinagyártás
+    vaccine_production();
 
     // Válasz
     vector<string> commands;
@@ -102,15 +106,15 @@ unsigned int Solver::infection(unsigned int y, unsigned int x) {
 
     // additív átfertőződés
     unsigned int sum_infection_rate = 0;
-    double avg_infection_rate =0;
-    double  counter =5 ;
+    double avg_infection_rate;
+    double counter = 5;
     for (auto nbs : neighbours) {
         pair<int, int> c(y - nbs.first, x - nbs.second);
 
         if (!(0 <= c.first and c.first < reader.dimension[0] and
               0 <= c.second and c.second < reader.dimension[1])) // határpontok szomszédait nem vizsgáljuk
         {
-            counter --;
+            counter--;
             continue;
         }
 
@@ -143,7 +147,7 @@ unsigned int Solver::infection(unsigned int y, unsigned int x) {
             sum_infection_rate += population_diff;
         }
     }
-    avg_infection_rate = sum_infection_rate/counter;
+    avg_infection_rate = sum_infection_rate / counter;
     unsigned int rand = reader.factors[3] % 25; // {50,...75} közé eső valami
     update_factor(reader.factors[3]);
 
@@ -170,22 +174,22 @@ unsigned int Solver::healing(unsigned int y, unsigned int x) {
 
     if (width + height < curr_tick) {
         ///******************* MÁSODIK FORDULÓ *****************///
-        unsigned int IR = tick_info[curr_tick-1][y][x].infectionRate;
+        unsigned int IR = tick_info[curr_tick - 1][y][x].infectionRate;
         unsigned int P = tick_info[0][y][x].population; //start_info
 
         unsigned int n = 0; //összes ország tartalék vakcinái
-        for(const auto &a : reader.countries){
+        for (const auto &a : reader.countries) {
             n += a.second.RV;
         }
 
         int X = min(n * P, IR); //ennyivel csökken az infection és nő a healthRate vakcinázás után
-        int m = ceil(X/P); //ennyivel csökken a tartalék vakcinaszám (összesen)
+        int m = ceil(X / P); //ennyivel csökken a tartalék vakcinaszám (összesen)
         ///vakcina miatti gyógyulás
-        if (IR > 0 && n > 0){
+        if (IR > 0 && n > 0) {
             reader.areas[y][x].healthRate += X;
             reader.areas[y][x].infectionRate -= X;
             ///tartalék vakcinaszám csökkentése
-            for(auto a : reader.countries){
+            for (auto a : reader.countries) {
                 a.second.RV = floor(a.second.RV * (n - m) / n);
             }
         }
@@ -200,7 +204,7 @@ unsigned int Solver::healing(unsigned int y, unsigned int x) {
         }
         unsigned int h = floor(min_infection_rate * (reader.factors[0] % 10) / 20.0);
         update_factor(reader.factors[0]);
-        return floor(h * (IR-X)/IR); ///2. fordulós visszatérési érték
+        return floor(h * (IR - X) / IR); ///2. fordulós visszatérési érték
     } else {
         return 0;
     }
@@ -208,38 +212,62 @@ unsigned int Solver::healing(unsigned int y, unsigned int x) {
 
 void Solver::vaccine_production() {
     int country_id = reader.data[2];
-    unsigned int  sum_of_areas =0;
-    unsigned int minus_val =0;
+    unsigned int sum_of_areas = 0;
+    unsigned int minus_val = 0;
     vector<std::pair<int, int>> neighbours{{-1, 0},
                                            {0,  -1},
                                            {1,  0},
                                            {0,  1}};
 
-    for(auto clean: reader.countries[country_id].ASID ){
-    for(size_t y =0; y < reader.areas.size(); y++){
-        for(std::size_t x = 0; x < reader.areas[y].size(); x++){
-            if(reader.areas[y][x].district == clean){
-                for (auto nbs : neighbours) {
-                    pair<int, int> c(y - nbs.first, x - nbs.second);
-                    if(reader.countries[country_id].ASID.find(reader.areas[c.first][c.second].district) ==
-                            reader.countries[country_id].ASID.end()){
-                        //szomszed még nem megtisztított
-                        minus_val += (6-tick_info[0][c.first][c.second].population);
+    for (auto clean: reader.countries[country_id].ASID) {
+        for (size_t y = 0; y < reader.areas.size(); y++) {
+            for (std::size_t x = 0; x < reader.areas[y].size(); x++) {
+                if (reader.areas[y][x].district == clean) {
+                    for (auto nbs : neighbours) {
+                        pair<int, int> c(y - nbs.first, x - nbs.second);
+                        if (reader.countries[country_id].ASID.find(reader.areas[c.first][c.second].district) ==
+                            reader.countries[country_id].ASID.end()) {
+                            //szomszed még nem megtisztított
+                            minus_val += (6 - tick_info[0][c.first][c.second].population);
+                        }
                     }
-                }
                     sum_of_areas++;
+                }
             }
         }
     }
-}
-    int value = 2 * sum_of_areas - ceil(minus_val/3);
-            if(value <0){
-                value =0;
-            }
-    reader.countries[country_id].TPC = value ;
+    int value = 2 * sum_of_areas - ceil(minus_val / 3);
+    if (value < 0) {
+        value = 0;
+    }
+    reader.countries[country_id].TPC = value;
 }
 
-void Solver::answer_msg(vector<std::string>& commands) {
+void Solver::cleaned_back() {
+    unsigned int curr_tick = reader.data[1];
+    int country_id = reader.data[2];
+    // for(auto district : reader.countries[country_id].ASID){
+
+    for (size_t y = 0; y < reader.areas.size(); y++) {
+
+        for (std::size_t x = 0; x < reader.areas[y].size(); x++) {
+            if (reader.countries[country_id].ASID.find(reader.areas[y][x].district)
+                != reader.countries[country_id].ASID.end() and vaccine_history[curr_tick][y][x] != 0) {
+                Action temp;
+                temp.val = vaccine_history[curr_tick][y][x];
+                temp.x = x;
+                temp.y = y;
+                BACK.push_back(temp);
+                //itt majd am meg  kell hívni a visszarakos függvényt csak ilyen még nincs
+                //de megy a raktárba a val és nullázódik a terület raktára
+            }
+        }
+    }
+
+}
+
+
+void Solver::answer_msg(vector<std::string> &commands) {
     stringstream ss;
     string command;
 
@@ -248,7 +276,7 @@ void Solver::answer_msg(vector<std::string>& commands) {
     commands.push_back(command);
     ss.clear();
 
-    for (const auto& b : BACK) {
+    for (const auto &b : BACK) {
         ss << "BACK " << b.y << " " << b.x << " " << b.val << "\n";
         getline(ss, command);
         commands.push_back(command);
@@ -272,5 +300,7 @@ void Solver::answer_msg(vector<std::string>& commands) {
 //    }
     commands.emplace_back(".");
 }
+
+
 
 

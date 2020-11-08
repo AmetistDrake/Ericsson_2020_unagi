@@ -26,6 +26,7 @@ private:
     unsigned int infection(unsigned int y, unsigned int x);
     static void update_factor(uint32_t&);
     void update_infected_districts();
+    void cleaned_back(); // 3mas pont a második fordulóban
     void answer_msg(std::vector<std::string>&);
     void vaccine_production();
 
