@@ -232,8 +232,11 @@ void Solver::vaccine_production() {
         }
     }
 }
-
-    reader.countries[country_id].TPC = 2 * sum_of_areas - ceil(minus_val/3);
+    int value = 2 * sum_of_areas - ceil(minus_val/3);
+            if(value <0){
+                value =0;
+            }
+    reader.countries[country_id].TPC = value ;
 }
 
 void Solver::answer_msg(vector<std::string>& commands) {
