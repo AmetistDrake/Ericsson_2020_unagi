@@ -208,17 +208,32 @@ unsigned int Solver::healing(unsigned int y, unsigned int x) {
 
 void Solver::vaccine_production() {
     int country_id = reader.data[2];
-    int sum_of_areas =0;
-for(auto clean: reader.countries[country_id].ASID ){
-    for(auto y:reader.areas){
-        for(auto x:y){
-            if(x.district == clean){
-                sum_of_areas++;
+    unsigned int  sum_of_areas =0;
+    unsigned int minus_val =0;
+    vector<std::pair<int, int>> neighbours{{-1, 0},
+                                           {0,  -1},
+                                           {1,  0},
+                                           {0,  1}};
+
+    for(auto clean: reader.countries[country_id].ASID ){
+    for(size_t y =0; y < reader.areas.size(); y++){
+        for(std::size_t x = 0; x < reader.areas[y].size(); x++){
+            if(reader.areas[y][x].district == clean){
+                for (auto nbs : neighbours) {
+                    pair<int, int> c(y - nbs.first, x - nbs.second);
+                    if(reader.countries[country_id].ASID.find(reader.areas[c.first][c.second].district) ==
+                            reader.countries[country_id].ASID.end()){
+                        //szomszed még nem megtisztított
+                        minus_val += (6-tick_info[0][c.first][c.second].population);
+                    }
+                }
+                    sum_of_areas++;
             }
         }
     }
 }
-    reader.countries[country_id].TPC = 2 * sum_of_areas;
+
+    reader.countries[country_id].TPC = 2 * sum_of_areas - ceil(minus_val/3);
 }
 
 void Solver::answer_msg(vector<std::string>& commands) {
