@@ -2,8 +2,6 @@
 
 using namespace std;
 
-static bool running = true;
-
 struct Render_State {
     int height, width;
     void* memory; // void pointer: nem érdekel minket milyen típusú
@@ -13,23 +11,23 @@ struct Render_State {
 
 static Render_State render_state;
 
-LRESULT CALLBACK Draw::window_callback(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+LRESULT CALLBACK Draw::window_callback(HWND main_window, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     LRESULT result = 0;
     switch (uMsg) {
         case WM_CLOSE:
-        case WM_DESTROY: {
-            running = false;
-        } break;
+        case WM_DESTROY:
+            PostQuitMessage(0);
+            break;
         case WM_SIZE: {
             RECT rect;
-            GetClientRect(hwnd, &rect);
+            GetClientRect(main_window, &rect);
             render_state.width = rect.right - rect.left;
             render_state.height = rect.bottom - rect.top;
 
             uint32_t size = render_state.width * render_state.height * sizeof(unsigned int);
 
             if (render_state.memory) VirtualFree(render_state.memory, 0, MEM_RELEASE);
-            render_state.memory = VirtualAlloc(0, size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+            render_state.memory = VirtualAlloc(nullptr, size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
 
             render_state.bitmap_info.bmiHeader.biSize = sizeof(render_state.bitmap_info.bmiHeader);
             render_state.bitmap_info.bmiHeader.biWidth = render_state.width;
@@ -39,29 +37,24 @@ LRESULT CALLBACK Draw::window_callback(HWND hwnd, UINT uMsg, WPARAM wParam, LPAR
             render_state.bitmap_info.bmiHeader.biCompression = BI_RGB;
         } break;
         default:
-            result = DefWindowProc(hwnd, uMsg, wParam, lParam);
+            result = DefWindowProc(main_window, uMsg, wParam, lParam);
     }
     return result;
 }
 
 void Draw::draw(const std::vector<std::vector<std::vector<std::vector<std::string>>>>& fd) {
-    while (running) {
-        MSG message;
-        while (PeekMessage(&message, window, 0, 0, PM_REMOVE)) {
-            TranslateMessage(&message);
-            DispatchMessage(&message);
-        }
+    MSG msg;
+    while (GetMessage(&msg, main_window, 0, 0)) {
+        draw_filled_rect(0,0,40,40,0x00ff00);
+        refresh();
 
-        string txt = "This is how to create text";
-        TextOut(hdc, 10, 50, txt.c_str(), txt.size());
-
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
     }
 }
 
 Draw::Draw(HINSTANCE _hInstance, HINSTANCE _hPrevInstance, LPSTR _lpCmdLine, int _nShowCmd) : hInstance(_hInstance), hPrevInstance(_hPrevInstance), lpCmdLine(_lpCmdLine), nShowCmd(_nShowCmd) {
-    ShowCursor(TRUE);
-
-    // Create Window class
+    // Set window_class properies
     window_class.style = CS_HREDRAW | CS_VREDRAW;
     window_class.lpszClassName = "Game Window Class";
     window_class.lpfnWndProc = window_callback;
@@ -70,10 +63,10 @@ Draw::Draw(HINSTANCE _hInstance, HINSTANCE _hPrevInstance, LPSTR _lpCmdLine, int
     RegisterClass(&window_class);
 
     // Create window
-    window = CreateWindowA(window_class.lpszClassName, "Ericsson2020 Unagi", WS_OVERLAPPEDWINDOW | WS_VISIBLE,
-                           CW_USEDEFAULT, CW_USEDEFAULT, 1280, 720, 0, 0, hInstance, 0);
+    main_window = CreateWindowA(window_class.lpszClassName, "Ericsson2020 Unagi", WS_OVERLAPPEDWINDOW | WS_VISIBLE,
+                           CW_USEDEFAULT, CW_USEDEFAULT, 1280, 720, nullptr, nullptr, hInstance, nullptr);
 
-    hdc = GetDC(window); // get device context
+    hdc = GetDC(main_window); // get device context
 }
 
 void Draw::refresh() {

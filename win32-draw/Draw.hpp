@@ -15,7 +15,7 @@ private:
 
     WNDCLASS window_class = {};
     HDC hdc;
-    HWND window;
+    HWND main_window;
 
     static LRESULT CALLBACK window_callback(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
     static uint32_t coord(int x, int y);
