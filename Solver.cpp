@@ -27,14 +27,13 @@ vector<string> Solver::process(const vector<string>& infos) {
     vector<vector<unsigned int>> tmp(reader.dimension[0],
                                      vector<unsigned int>(reader.dimension[1], 0));
     healing_history.push_back(tmp);
-    for (size_t x = 0; x <
-                       reader.dimension[1]; x++) { // oszlop és sorfolytonos indexelés, ez fontos, mert számít hogy a faktorok melyik iterációban frissülnek
+    for (size_t x = 0; x < reader.dimension[1]; x++) { // oszlop és sorfolytonos indexelés, ez fontos, mert számít hogy a faktorok melyik iterációban frissülnek
         for (size_t y = 0; y < reader.dimension[0]; y++) {
             if (reader.areas[y][x].infectionRate > 0) {
                 unsigned int h = healing(y, x);
                 healing_history[reader.data[1]][y][x] = h;
                 reader.areas[y][x].healthRate += h;
-                reader.areas[y][x].infectionRate = reader.areas[y][x].infectionRate - h;
+                reader.areas[y][x].infectionRate -= h;
             }
         }
     }
@@ -80,7 +79,7 @@ unsigned int Solver::infection(unsigned int y, unsigned int x) {
     unsigned int t = reader.factors[2] % 7 + 3; // átfertőződési hajlandóság: {3,...10} közül valami
     update_factor(reader.factors[2]);
 
-    // ázlagos átfertőződés
+    // átlagos átfertőződés
     unsigned int sum = 0;
     for (std::size_t i = 1; i <= n; i++) {
         sum += infection_history[curr_tick - i][y][x];
@@ -158,6 +157,27 @@ unsigned int Solver::healing(unsigned int y, unsigned int x) {
     unsigned int curr_infection_rate;
 
     if (width + height < curr_tick) {
+        ///******************* MÁSODIK FORDULÓ *****************///
+        unsigned int IR = tick_info[curr_tick-1][y][x].infectionRate;
+        unsigned int P = tick_info[0][y][x].population; //start_info
+
+        unsigned int n = 0; //összes ország tartalék vakcinái
+        for(const auto &a : reader.countries){
+            n += a.second.RV;
+        }
+
+        int X = min(n * P, IR); //ennyivel csökken az infection és nő a healthRate vakcinázás után
+        int m = ceil(X/P); //ennyivel csökken a tartalék vakcinaszám (összesen)
+        ///vakcina miatti gyógyulás
+        if (IR > 0 && n > 0){
+            reader.areas[y][x].healthRate += X;
+            reader.areas[y][x].infectionRate -= X;
+            ///tartalék vakcinaszám csökkentése
+            for(auto a : reader.countries){
+                a.second.RV = floor(a.second.RV * (n - m) / n);
+            }
+        }
+        ///******************* MÁSODIK FORDULÓ *****************///
         // min. ker. az adott cella múltbeli fertőzöttésgei között width+height tickre visszamenően
         unsigned int min_infection_rate = 100;
         for (unsigned int i = 1; i <= (width + height); i++) {
@@ -166,9 +186,9 @@ unsigned int Solver::healing(unsigned int y, unsigned int x) {
                 min_infection_rate = curr_infection_rate;
             }
         }
-        unsigned int result = floor(min_infection_rate * (reader.factors[0] % 10) / 20.0);
+        unsigned int h = floor(min_infection_rate * (reader.factors[0] % 10) / 20.0);
         update_factor(reader.factors[0]);
-        return result;
+        return floor(h * (IR-X)/IR); ///2. fordulós visszatérési érték
     } else {
         return 0;
     }
