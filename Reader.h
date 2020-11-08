@@ -37,7 +37,7 @@ public:
     std::unordered_map<int, int> safe_districts; // a solveres set emiatt valszeg majd nem kell
     std::unordered_map<int, Country> countries;
     std::vector<std::vector<int>> sum_of_previous_vaccine_on_areas;
-    std::vector<std::vector<int>> vaccinated;
+    std::vector<std::vector<int>> vaccinated; // hány oltás adódott be
 
     Reader() = default;
     void readDataConsole();

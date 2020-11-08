@@ -93,12 +93,15 @@ unsigned int Solver::infection(unsigned int y, unsigned int x) {
 
     // additív átfertőződés
     unsigned int sum_infection_rate = 0;
+    double avg_infection_rate =0;
+    double  counter =5 ;
     for (auto nbs : neighbours) {
         pair<int, int> c(y - nbs.first, x - nbs.second);
 
         if (!(0 <= c.first and c.first < reader.dimension[0] and
               0 <= c.second and c.second < reader.dimension[1])) // határpontok szomszédait nem vizsgáljuk
         {
+            counter --;
             continue;
         }
 
@@ -131,11 +134,11 @@ unsigned int Solver::infection(unsigned int y, unsigned int x) {
             sum_infection_rate += population_diff;
         }
     }
-
-    unsigned int rand = (reader.factors[3] % 25) + 50; // {50,...75} közé eső valami
+    avg_infection_rate = sum_infection_rate/counter;
+    unsigned int rand = reader.factors[3] % 25; // {50,...75} közé eső valami
     update_factor(reader.factors[3]);
 
-    double r = (double(double(sum) / double(n)) + double(sum_infection_rate)) * double(rand) / 100;
+    double r = (double(double(sum) / double(n)) + avg_infection_rate) * double(rand) / 100;
     unsigned int result = ceil(round(r * 1000) / 1000);
 
 //    if (reader.data[1] == 29 && y == 40 && x == 8) {

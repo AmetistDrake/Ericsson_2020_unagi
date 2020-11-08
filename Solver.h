@@ -16,6 +16,8 @@ private:
     std::vector<std::vector<std::vector<Area>>> tick_info;
     std::vector<std::vector<std::vector<unsigned int>>> infection_history;
     std::vector<std::vector<std::vector<unsigned int>>> healing_history;
+    std::vector<std::vector<std::vector<unsigned int>>> vaccine_history;
+
     std::unordered_set<unsigned int> infected_districts;
     std::vector<Action> BACK;
     std::vector<Action> PUT;
