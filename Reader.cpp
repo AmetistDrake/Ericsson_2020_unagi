@@ -39,8 +39,10 @@ bool Reader::readHelperFunc(std::string& line) {
         int&b = vaccinated[y][x];
         ss >> a >> b;
     } else if (!line.rfind("SAFE", 0)) {
-        int safe_distict;
-        std::stringstream(std::move(line).substr(5)) >> safe_distict >> safe_districts[safe_distict];
+        unsigned int country_id;
+        unsigned int safe_distict;
+        std::stringstream(std::move(line).substr(5)) >> country_id >> safe_distict;
+        safe_districts[safe_distict] = country_id;
     } else if (!line.rfind("WARN", 0)) {
         message = std::move(line);
     }

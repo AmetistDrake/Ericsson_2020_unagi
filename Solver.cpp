@@ -6,7 +6,7 @@
 
 using namespace std;
 
-vector<string> Solver::process(const vector<string> &infos) {
+vector<string> Solver::process(const vector<string>& infos) {
     /********************************************/      /// A tesztelés a beadott verziótól itt különül el
     if (infos.size() == 1 && infos[0] == "unagi") {     // amikor a consolon keresztül kommunikál a program
         reader.readDataConsole();
@@ -23,7 +23,9 @@ vector<string> Solver::process(const vector<string> &infos) {
     }
     /********************************************/      /// Általános válasz:
 
+    vector<vector<vector<string>>> disp_msg (reader.dimension[0], vector<vector<string>>(reader.dimension[1], vector<string>()));
 
+    // healing - fertőzöttek gyógyulása
     vector<vector<unsigned int>> tmp(reader.dimension[0],
                                      vector<unsigned int>(reader.dimension[1], 0));
     // 1) vakcina elhelyezés, csoportosítás
@@ -45,7 +47,6 @@ vector<string> Solver::process(const vector<string> &infos) {
     // 3) megtisztítottról visszekerül az országraktárba
     update_infected_districts();
     cleaned_back();
-
 
 
     // 4) infection - vírus terjed
@@ -75,6 +76,7 @@ vector<string> Solver::process(const vector<string> &infos) {
     // 5) vakcinagyártás
     vaccine_production();
 
+    field_display.push_back(disp_msg);
     // Válasz
     vector<string> commands;
     answer_msg(commands); // readerből beletölti a megfelelő infokat
@@ -300,7 +302,3 @@ void Solver::answer_msg(vector<std::string> &commands) {
 //    }
     commands.emplace_back(".");
 }
-
-
-
-
