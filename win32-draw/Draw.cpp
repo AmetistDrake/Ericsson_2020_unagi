@@ -10,7 +10,6 @@ using namespace std;
 
 Render_State render_state; // muszáj hogy globális legyen, mert csak a WndProc-on belül érhető el a méret módosítás, és az pedig static
 Game_Data game_data;
-std::vector<std::vector<std::vector<std::vector<std::string>>>> fd;
 WNDCLASS window_class;
 HWND main_window;
 HWND disp_tick;
@@ -24,7 +23,6 @@ void refreshWindowElements() {
     for (int i = 0; i < game_data.N; i++ ) {
         for(int j = 0; j < game_data.M; j++) {
             SetWindowPos(field_btns[i][j], HWND_TOP,  i*FWIDTH, j*FHEIGHT, FWIDTH, FHEIGHT, 0);
-            SetWindowTextA(field_btns[i][j], "");
         }
     }
     SetWindowTextA(next_button, ">");
@@ -32,44 +30,42 @@ void refreshWindowElements() {
 }
 
 void nextPage(HWND hwnd){
-    if (game_data.tick < game_data.maxtick) {
+    if (game_data.tick < game_data.maxtick-1) {
         refresh();
         game_data.tick++;
+
         if (!game_data.fd.empty()){
             for (int i = 0; i < game_data.N; i++) {
                 for (int j = 0; j < game_data.M; j++) {
                     string t;
-                    for (const auto& m : game_data.fd[game_data.tick][i][j]) {
+                    for (const auto& m : game_data.fd[game_data.tick][j][i]) {
                         t += m + "\n";
                     }
                     SetWindowTextA(field_btns[i][j], t.c_str());
                 }
             }
         }
-        string t;
-        stringstream ss;
-        ss << game_data.tick;
-        ss >> t;
-        t = "tick=" + t;
-
+        string t = "tick=" + to_string(game_data.tick);
         SetWindowTextA(disp_tick, t.c_str());
     }
 }
 
 void prevPage(HWND hwnd) {
     if (game_data.tick > 0) {
+        refresh();
         game_data.tick--;
-        for (int i = 0; i < game_data.N; i++) {
-            for (int j = 0; j < game_data.M; j++) {
-
+        if (!game_data.fd.empty()){
+            for (int i = 0; i < game_data.N; i++) {
+                for (int j = 0; j < game_data.M; j++) {
+                    string t;
+                    for (const auto& m : game_data.fd[game_data.tick][j][i]) {
+                        t += m + "\n";
+                    }
+                    SetWindowTextA(field_btns[i][j], t.c_str());
+                }
             }
         }
-        string t;
-        stringstream ss;
-        ss << game_data.tick;
-        ss >> t;
-        t = "tick=" + t;
-        refresh();
+        string t = "tick=" + to_string(game_data.tick);
         SetWindowTextA(disp_tick, t.c_str());
     }
 }
@@ -139,18 +135,24 @@ void Draw::draw(const std::vector<std::vector<std::vector<std::vector<std::strin
     if (field_info.empty()) {
         return;
     }
-    fd = field_info;
+    game_data.fd = field_info;
+
     game_data.tick = 0;
-    game_data.maxtick = fd.size();
-    game_data.N = fd[0][0].size();
-    game_data.M = fd[0].size();
+    game_data.maxtick = game_data.fd.size();
+    game_data.N = game_data.fd[0][0].size();
+    game_data.M = game_data.fd[0].size();
     render_state.right_padding = 100;
     render_state.bottom_padding = 100;
     field_btns.resize(game_data.N, vector<HWND> (game_data.M));
 
+
     for (int i = 0; i < game_data.N; i++ ) {
         for(int j = 0; j < game_data.M; j++) {
-            field_btns[i][j] = CreateWindowA("static", "", WS_VISIBLE | WS_CHILD | WS_BORDER | SS_CENTER, i*FWIDTH, j*FHEIGHT, FWIDTH, FHEIGHT, main_window, nullptr, nullptr, nullptr);
+            string t;
+            for (const auto& m : game_data.fd[0][j][i]) {
+                t += m + "\n";
+            }
+            field_btns[i][j] = CreateWindowA("static", t.c_str(), WS_VISIBLE | WS_CHILD | WS_BORDER | SS_CENTER, i*FWIDTH, j*FHEIGHT, FWIDTH, FHEIGHT, main_window, nullptr, nullptr, nullptr);
         }
     }
 

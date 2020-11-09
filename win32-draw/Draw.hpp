@@ -5,7 +5,7 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
-#include <math.h>
+#include <cmath>
 #include <sstream>
 
 class Draw {
@@ -22,7 +22,6 @@ public:
 struct Game_Data {
     int N, M; // fields
     int maxtick;
-    std::string field_info;
     int tick;
 
     std::vector<std::vector<std::vector<std::vector<std::string>>>> fd;
@@ -31,7 +30,6 @@ struct Game_Data {
 struct Render_State {
     int height, width; // screen size
     void* memory; // void pointer: nem érdekel minket milyen típusú
-    POINT p; // mouse pos
     int right_padding;
     int bottom_padding;
 

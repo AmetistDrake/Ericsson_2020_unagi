@@ -42,6 +42,7 @@ vector<string> Solver::process(const vector<string>& infos) {
                 reader.areas[y][x].healthRate += h;
                 reader.areas[y][x].infectionRate -= h;
             }
+            disp_msg[y][x].push_back("healing = " + to_string(healing_history[reader.data[1]][y][x]));
         }
     }
     // 3) megtisztítottról visszekerül az országraktárba
@@ -67,6 +68,7 @@ vector<string> Solver::process(const vector<string>& infos) {
                 infection_history[reader.data[1]][y][x] = inf;
                 reader.areas[y][x].infectionRate += inf;
             }
+            disp_msg[y][x].push_back("infection = " + to_string(infection_history[reader.data[1]][y][x]));
         }
     }
 
