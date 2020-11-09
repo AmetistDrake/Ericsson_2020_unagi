@@ -9,7 +9,7 @@ let safe = [];
 let warn = [];
 
 let test1 = [
-    [Math.floor(Math.random()*1000), 3], // gameID, maxtick,
+    [Math.floor(Math.random()*100000), 3], // gameID, maxtick,
     [6, 4], // y, x
     [[0, 10, 10]], // country start data: countryID, TPC, RV
     [1569741360, 1785505948, 516548029, 1302116447],
