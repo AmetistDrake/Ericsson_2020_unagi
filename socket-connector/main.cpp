@@ -1,7 +1,6 @@
 #include "console_connector.h"
 #include "socket_connector.h"
 #include "Solver.h"
-#include "win32-draw/Draw.hpp"
 
 #include <windows.h>
 #include <iostream>
@@ -166,9 +165,7 @@ public:
                 }
             }
         }
-
-        Draw d(hInstance);
-        d.draw(your_solver.field_display);
+        your_solver.create_json_from_data();
 
         std::cerr << "[main] " << "Game over" << std::endl;
     }

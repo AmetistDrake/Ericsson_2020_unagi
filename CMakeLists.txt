@@ -20,13 +20,11 @@ add_executable(ericsson-socket_connector
         socket-connector/console_connector.h
         socket-connector/platform_dep.h
         socket-connector/socket_connector.h
-        win32-draw/Draw.cpp
-        win32-draw/Draw.hpp
         Solver.cpp
         Solver.h
         Reader.cpp
         Reader.h
-        Solver_finished_functions.cpp win32-draw/Canvas.cpp)
+        Solver_finished_functions.cpp)
 
 
 target_link_libraries(${CMAKE_PROJECT_NAME} ws2_32)

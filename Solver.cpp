@@ -23,7 +23,8 @@ vector<string> Solver::process(const vector<string>& infos) {
     }
     /********************************************/      /// Általános válasz:
 
-    vector<vector<vector<string>>> disp_msg (reader.dimension[0], vector<vector<string>>(reader.dimension[1], vector<string>()));
+    vector<vector<vector<string>>> msg_tmp (reader.dimension[0], vector<vector<string>>(reader.dimension[1], vector<string>()));
+    msg_history.push_back(msg_tmp);
 
     // healing - fertőzöttek gyógyulása
     vector<vector<unsigned int>> tmp(reader.dimension[0],
@@ -42,7 +43,6 @@ vector<string> Solver::process(const vector<string>& infos) {
                 reader.areas[y][x].healthRate += h;
                 reader.areas[y][x].infectionRate -= h;
             }
-            disp_msg[y][x].push_back("healing = " + to_string(healing_history[reader.data[1]][y][x]));
         }
     }
     // 3) megtisztítottról visszekerül az országraktárba
@@ -68,7 +68,6 @@ vector<string> Solver::process(const vector<string>& infos) {
                 infection_history[reader.data[1]][y][x] = inf;
                 reader.areas[y][x].infectionRate += inf;
             }
-            disp_msg[y][x].push_back("infection = " + to_string(infection_history[reader.data[1]][y][x]));
         }
     }
 
@@ -78,7 +77,6 @@ vector<string> Solver::process(const vector<string>& infos) {
     // 5) vakcinagyártás
     vaccine_production();
 
-    field_display.push_back(disp_msg);
     // Válasz
     vector<string> commands;
     answer_msg(commands); // readerből beletölti a megfelelő infokat
@@ -303,4 +301,17 @@ void Solver::answer_msg(vector<std::string> &commands) {
 //        ss.clear();
 //    }
     commands.emplace_back(".");
+}
+
+void Solver::create_json_from_data() {
+    ofstream kf;
+    string path_str = "../displays/";
+    filesystem::path path = path_str;
+    if (!filesystem::exists(path))
+    {
+        filesystem::create_directories(path);
+    }
+    kf.open(path_str + to_string(reader.data[0]) + ".json");
+    kf << "strict graph {" << endl;
+    kf.close();
 }
