@@ -15,9 +15,10 @@ private:
         unsigned int y,x,val;
     };
 
-    std::vector<std::vector<std::vector<Area>>> tick_info;
     std::vector<std::vector<std::vector<unsigned int>>> infection_history;
     std::vector<std::vector<std::vector<unsigned int>>> healing_history;
+    std::vector<std::vector<std::vector<unsigned int>>> infection_rate_history;
+    std::vector<std::vector<std::vector<unsigned int>>> health_rate_history;
     std::vector<std::vector<std::vector<unsigned int>>> vaccine_history;
     std::vector<std::vector<std::vector<std::vector<std::string>>>> msg_history;
 

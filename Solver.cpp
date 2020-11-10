@@ -34,21 +34,21 @@ vector<string> Solver::process(const vector<string>& infos) {
 
     // 2) healing - fertőzöttek gyógyulása
     healing_history.push_back(tmp);
-    for (size_t x = 0; x <
-                       reader.dimension[1]; x++) { // oszlop és sorfolytonos indexelés, ez fontos, mert számít hogy a faktorok melyik iterációban frissülnek
+    for (size_t x = 0; x < reader.dimension[1]; x++) { // oszlop és sorfolytonos indexelés, ez fontos, mert számít hogy a faktorok melyik iterációban frissülnek
         for (size_t y = 0; y < reader.dimension[0]; y++) {
             if (reader.areas[y][x].infectionRate > 0) {
                 unsigned int h = healing(y, x);
                 healing_history[reader.data[1]][y][x] = h;
+                cout << h << " ";
                 reader.areas[y][x].healthRate += h;
                 reader.areas[y][x].infectionRate -= h;
             }
         }
+        cout << endl;
     }
     // 3) megtisztítottról visszekerül az országraktárba
     update_infected_districts();
     cleaned_back();
-
 
     // 4) infection - vírus terjed
     infection_history.push_back(tmp);
@@ -71,11 +71,20 @@ vector<string> Solver::process(const vector<string>& infos) {
         }
     }
 
-    tick_info.push_back(reader.areas); // update tick info with current tick
     update_infected_districts();
 
     // 5) vakcinagyártás
     vaccine_production();
+
+    // inf_rate és health_rate history-k feltöltése
+    health_rate_history.push_back(tmp);
+    infection_rate_history.push_back(tmp);
+    for (size_t x = 0; x < reader.dimension[1]; x++) {
+        for (size_t y = 0; y < reader.dimension[0]; y++) {
+            health_rate_history[reader.data[1]][y][x] = reader.areas[y][x].healthRate;
+            infection_rate_history[reader.data[1]][y][x] = reader.areas[y][x].infectionRate;
+        }
+    }
 
     // Válasz
     vector<string> commands;
@@ -122,8 +131,8 @@ unsigned int Solver::infection(unsigned int y, unsigned int x) {
 
         // dist kiszámítása
         unsigned int dist; // távolság {0,...2] közül valami
-        if (tick_info[0][y][x].district !=
-            tick_info[0][c.first][c.second].district) { dist = 2; } // különböző kerületben vannak
+        if (reader.areas[y][x].district !=
+            reader.areas[c.first][c.second].district) { dist = 2; } // különböző kerületben vannak
         else if (y != unsigned(c.first) or x != unsigned(c.second)) { dist = 1; } // azonos kerületben vannak
         else { dist = 0; } // a terület önmaga
 
@@ -135,9 +144,9 @@ unsigned int Solver::infection(unsigned int y, unsigned int x) {
         }
 
         // sum_infection_rate kiszámítása a szomszédos fertőző területek népessége alapján, ha eléggé fertőzőek voltak előző körben
-        if (tick_info[curr_tick - 1][c.first][c.second].infectionRate > t * dist) {
+        if (infection_rate_history[curr_tick - 1][c.first][c.second] > t * dist) {
             unsigned int population_diff =
-                    clamp(int(tick_info[0][y][x].population - tick_info[0][c.first][c.second].population), 0, 2) + 1;
+                    clamp(int(reader.areas[y][x].population - reader.areas[c.first][c.second].population), 0, 2) + 1;
             if (reader.data[1] == 13 && y == 19 && x == 17) {
 //                cout << "first population: " << tick_info[0][y][x].population << endl;
 //                cout << "second population: " << tick_info[0][c.first][c.second].population << endl;
@@ -175,31 +184,29 @@ unsigned int Solver::healing(unsigned int y, unsigned int x) {
     unsigned int curr_infection_rate;
 
     if (width + height < curr_tick) {
-        ///******************* MÁSODIK FORDULÓ *****************///
-        unsigned int IR = tick_info[curr_tick - 1][y][x].infectionRate;
-        unsigned int P = tick_info[0][y][x].population; //start_info
-
-        unsigned int n = 0; //összes ország tartalék vakcinái
-        for (const auto &a : reader.countries) {
-            n += a.second.RV;
-        }
-
-        int X = min(n * P, IR); //ennyivel csökken az infection és nő a healthRate vakcinázás után
-        int m = ceil(X / P); //ennyivel csökken a tartalék vakcinaszám (összesen)
-        ///vakcina miatti gyógyulás
-        if (IR > 0 && n > 0) {
-            reader.areas[y][x].healthRate += X;
-            reader.areas[y][x].infectionRate -= X;
-            ///tartalék vakcinaszám csökkentése
-            for (auto a : reader.countries) {
-                a.second.RV = floor(a.second.RV * (n - m) / n);
-            }
-        }
-        ///******************* MÁSODIK FORDULÓ *****************///
+//        ///******************* MÁSODIK FORDULÓ *****************///
+//        unsigned int IR = infection_rate_history[curr_tick - 1][y][x];
+//        unsigned int P = reader.areas[y][x].population; //start_info
+//
+//        unsigned int n = 0; //összes ország tartalék vakcinái
+//        for (const auto &a : reader.countries) {
+//            n += a.second.RV;
+//        }
+//
+//        unsigned int X = min(n * P, IR); //ennyivel csökken az infection és nő a healthRate vakcinázás után
+//        int m = ceil(X / P); //ennyivel csökken a tartalék vakcinaszám (összesen)
+//        ///vakcina miatti gyógyulás
+//        if (IR > 0 && n > 0) {
+//            ///tartalék vakcinaszám csökkentése
+//            for (auto a : reader.countries) {
+//                a.second.RV = floor(a.second.RV * (n - m) / n);
+//            }
+//        }
+//        ///******************* MÁSODIK FORDULÓ *****************///
         // min. ker. az adott cella múltbeli fertőzöttésgei között width+height tickre visszamenően
         unsigned int min_infection_rate = 100;
         for (unsigned int i = 1; i <= (width + height); i++) {
-            curr_infection_rate = tick_info[curr_tick - i][y][x].infectionRate;
+            curr_infection_rate = infection_rate_history[curr_tick - i][y][x];
             if (curr_infection_rate < min_infection_rate) {
                 min_infection_rate = curr_infection_rate;
             }
@@ -230,7 +237,7 @@ void Solver::vaccine_production() {
                         if (reader.countries[country_id].ASID.find(reader.areas[c.first][c.second].district) ==
                             reader.countries[country_id].ASID.end()) {
                             //szomszed még nem megtisztított
-                            minus_val += (6 - tick_info[0][c.first][c.second].population);
+                            minus_val += (6 - reader.areas[c.first][c.second].population);
                         }
                     }
                     sum_of_areas++;
@@ -292,190 +299,18 @@ void Solver::answer_msg(vector<std::string> &commands) {
         ss.clear();
     }
 
-//    for (auto& row : reader.areas) {
-//        for (auto& area : row) {
-//            ss << area.infectionRate << " ";
-//        }
-//        getline(ss, command);
-//        commands.push_back(command);
-//        ss.clear();
-//    }
+
+    // Ez legyen kikommentelve a beadottban
+    /***********************/
+    for (auto& row : reader.areas) {
+        for (auto& area : row) {
+            ss << area.infectionRate << " ";
+        }
+        getline(ss, command);
+        commands.push_back(command);
+        ss.clear();
+    }
+    /***********************/
+
     commands.emplace_back(".");
-}
-
-void Solver::create_json_from_data() {
-    ofstream kf;
-    string path_str = "../displays/json_files/";
-    filesystem::path path = path_str;
-    if (!filesystem::exists(path))
-    {
-        filesystem::create_directories(path);
-    }
-    kf.open(path_str + to_string(reader.data[0]) + ".json");
-    kf << "{\n";
-
-    kf << "\t\"N\" : " << to_string(reader.dimension[1]) <<",\n";
-    kf << "\t\"M\" : " << to_string(reader.dimension[0]) <<",\n";
-    kf << "\t\"counry_id\" : " << to_string(reader.data[2]) <<",\n";
-    kf << "\t\"num_of_countries\" : " << to_string(reader.countries_count) <<",\n";
-    kf << "\t\"country_id\" : " << to_string(reader.data[2]) <<",\n";
-    kf << "\t\"max_tick\" : " << to_string(reader.max_tick) <<",\n";
-
-    kf << "\t\"population\" : [";
-    for (size_t i = 0; i < reader.areas.size(); i++) {
-        kf << "[";
-        for(size_t j = 0; j < reader.areas[i].size(); j++) {
-            if (j == reader.areas[i].size()-1) {
-                kf << to_string(reader.areas[i][j].population);
-            }
-            else {
-                kf << to_string(reader.areas[i][j].population) << ", ";
-            }
-        }
-        if (i == reader.areas.size()-1) {
-            kf << "]";
-        }else {
-            kf << "], ";
-        }
-    }
-    kf << "],\n";
-
-    kf << "\t\"district\" : [";
-    for (size_t i = 0; i < reader.areas.size(); i++) {
-        kf << "[";
-        for(size_t j = 0; j < reader.areas[i].size(); j++) {
-            if (j == reader.areas[i].size()-1) {
-                kf << to_string(reader.areas[i][j].district);
-            }
-            else {
-                kf << to_string(reader.areas[i][j].district) << ", ";
-            }
-        }
-        if (i == reader.areas.size()-1) {
-            kf << "]";
-        }else {
-            kf << "], ";
-        }
-    }
-    kf << "],\n";
-
-    kf << "\t\"infection\" : [";
-    for (size_t i = 0; i < infection_history.size(); i++) {
-        kf << "[";
-        for(size_t j = 0; j < infection_history[i].size(); j++) {
-            kf << "[";
-            for (size_t k = 0; k < infection_history[i][j].size(); k++) {
-                if (k == infection_history[i][j].size()-1) {
-                    kf << to_string(infection_history[i][j][k]);
-                }
-                else {
-                    kf << to_string(infection_history[i][j][k]) << ", ";
-                }
-            }
-            if (j == infection_history[i].size()-1) {
-                kf << "]";
-            }else {
-                kf << "], ";
-            }
-        }
-        if (i == infection_history.size()-1) {
-            kf << "]";
-        }else {
-            kf << "], ";
-        }
-    }
-    kf << "],\n";
-
-    kf << "\t\"healing\" : [";
-    for (size_t i = 0; i < healing_history.size(); i++) {
-        kf << "[";
-        for(size_t j = 0; j < healing_history[i].size(); j++) {
-            kf << "[";
-            for (size_t k = 0; k < healing_history[i][j].size(); k++) {
-                if (k == healing_history[i][j].size()-1) {
-                    kf << to_string(healing_history[i][j][k]);
-                }
-                else {
-                    kf << to_string(healing_history[i][j][k]) << ", ";
-                }
-            }
-            if (j == healing_history[i].size()-1) {
-                kf << "]";
-            }else {
-                kf << "], ";
-            }
-        }
-        if (i == healing_history.size()-1) {
-            kf << "]";
-        }else {
-            kf << "], ";
-        }
-    }
-    kf << "],\n";
-
-    kf << "\t\"vaccines\" : [";
-    for (size_t i = 0; i < vaccine_history.size(); i++) {
-        kf << "[";
-        for(size_t j = 0; j < vaccine_history[i].size(); j++) {
-            kf << "[";
-            for (size_t k = 0; k < vaccine_history[i][j].size(); k++) {
-                if (k == healing_history[i][j].size()-1) {
-                    kf << to_string(vaccine_history[i][j][k]);
-                }
-                else {
-                    kf << to_string(vaccine_history[i][j][k]) << ", ";
-                }
-            }
-            if (j == vaccine_history[i].size()-1) {
-                kf << "]";
-            }else {
-                kf << "], ";
-            }
-        }
-        if (i == vaccine_history.size()-1) {
-            kf << "]";
-        }else {
-            kf << "], ";
-        }
-    }
-    kf << "],\n";
-
-    kf << "\t\"messages\" : [";
-    for (size_t i = 0; i < msg_history.size(); i++) {
-        kf << "[";
-        for(size_t j = 0; j < msg_history[i].size(); j++) {
-            kf << "[";
-            for (size_t k = 0; k < msg_history[i][j].size(); k++) {
-                kf << "[";
-                for (size_t l = 0; l < msg_history[i][j][k].size(); l++) {
-                    if (k == msg_history[i][j].size()-1) {
-                        kf << "\"" << msg_history[i][j][k][l] << "\"";
-                    }
-                    else {
-                        kf << "\"" << msg_history[i][j][k][l] << "\"" << ", ";
-                    }
-                }
-                if (k == msg_history[i][j].size()-1) {
-                    kf << "]";
-                }else {
-                    kf << "], ";
-                }
-
-            }
-            if (j == msg_history[i].size()-1) {
-                kf << "]";
-            }else {
-                kf << "], ";
-            }
-        }
-        if (i == msg_history.size()-1) {
-            kf << "]";
-        }else {
-            kf << "], ";
-        }
-    }
-    kf << "]\n";
-
-    kf << "}";
-    kf.close();
 }
