@@ -305,13 +305,177 @@ void Solver::answer_msg(vector<std::string> &commands) {
 
 void Solver::create_json_from_data() {
     ofstream kf;
-    string path_str = "../displays/";
+    string path_str = "../displays/json_files/";
     filesystem::path path = path_str;
     if (!filesystem::exists(path))
     {
         filesystem::create_directories(path);
     }
     kf.open(path_str + to_string(reader.data[0]) + ".json");
-    kf << "strict graph {" << endl;
+    kf << "{\n";
+
+    kf << "\t\"N\" : " << to_string(reader.dimension[1]) <<",\n";
+    kf << "\t\"M\" : " << to_string(reader.dimension[0]) <<",\n";
+    kf << "\t\"counry_id\" : " << to_string(reader.data[2]) <<",\n";
+    kf << "\t\"num_of_countries\" : " << to_string(reader.countries_count) <<",\n";
+    kf << "\t\"country_id\" : " << to_string(reader.data[2]) <<",\n";
+    kf << "\t\"max_tick\" : " << to_string(reader.max_tick) <<",\n";
+
+    kf << "\t\"population\" : [";
+    for (size_t i = 0; i < reader.areas.size(); i++) {
+        kf << "[";
+        for(size_t j = 0; j < reader.areas[i].size(); j++) {
+            if (j == reader.areas[i].size()-1) {
+                kf << to_string(reader.areas[i][j].population);
+            }
+            else {
+                kf << to_string(reader.areas[i][j].population) << ", ";
+            }
+        }
+        if (i == reader.areas.size()-1) {
+            kf << "]";
+        }else {
+            kf << "], ";
+        }
+    }
+    kf << "],\n";
+
+    kf << "\t\"district\" : [";
+    for (size_t i = 0; i < reader.areas.size(); i++) {
+        kf << "[";
+        for(size_t j = 0; j < reader.areas[i].size(); j++) {
+            if (j == reader.areas[i].size()-1) {
+                kf << to_string(reader.areas[i][j].district);
+            }
+            else {
+                kf << to_string(reader.areas[i][j].district) << ", ";
+            }
+        }
+        if (i == reader.areas.size()-1) {
+            kf << "]";
+        }else {
+            kf << "], ";
+        }
+    }
+    kf << "],\n";
+
+    kf << "\t\"infection\" : [";
+    for (size_t i = 0; i < infection_history.size(); i++) {
+        kf << "[";
+        for(size_t j = 0; j < infection_history[i].size(); j++) {
+            kf << "[";
+            for (size_t k = 0; k < infection_history[i][j].size(); k++) {
+                if (k == infection_history[i][j].size()-1) {
+                    kf << to_string(infection_history[i][j][k]);
+                }
+                else {
+                    kf << to_string(infection_history[i][j][k]) << ", ";
+                }
+            }
+            if (j == infection_history[i].size()-1) {
+                kf << "]";
+            }else {
+                kf << "], ";
+            }
+        }
+        if (i == infection_history.size()-1) {
+            kf << "]";
+        }else {
+            kf << "], ";
+        }
+    }
+    kf << "],\n";
+
+    kf << "\t\"healing\" : [";
+    for (size_t i = 0; i < healing_history.size(); i++) {
+        kf << "[";
+        for(size_t j = 0; j < healing_history[i].size(); j++) {
+            kf << "[";
+            for (size_t k = 0; k < healing_history[i][j].size(); k++) {
+                if (k == healing_history[i][j].size()-1) {
+                    kf << to_string(healing_history[i][j][k]);
+                }
+                else {
+                    kf << to_string(healing_history[i][j][k]) << ", ";
+                }
+            }
+            if (j == healing_history[i].size()-1) {
+                kf << "]";
+            }else {
+                kf << "], ";
+            }
+        }
+        if (i == healing_history.size()-1) {
+            kf << "]";
+        }else {
+            kf << "], ";
+        }
+    }
+    kf << "],\n";
+
+    kf << "\t\"vaccines\" : [";
+    for (size_t i = 0; i < vaccine_history.size(); i++) {
+        kf << "[";
+        for(size_t j = 0; j < vaccine_history[i].size(); j++) {
+            kf << "[";
+            for (size_t k = 0; k < vaccine_history[i][j].size(); k++) {
+                if (k == healing_history[i][j].size()-1) {
+                    kf << to_string(vaccine_history[i][j][k]);
+                }
+                else {
+                    kf << to_string(vaccine_history[i][j][k]) << ", ";
+                }
+            }
+            if (j == vaccine_history[i].size()-1) {
+                kf << "]";
+            }else {
+                kf << "], ";
+            }
+        }
+        if (i == vaccine_history.size()-1) {
+            kf << "]";
+        }else {
+            kf << "], ";
+        }
+    }
+    kf << "],\n";
+
+    kf << "\t\"messages\" : [";
+    for (size_t i = 0; i < msg_history.size(); i++) {
+        kf << "[";
+        for(size_t j = 0; j < msg_history[i].size(); j++) {
+            kf << "[";
+            for (size_t k = 0; k < msg_history[i][j].size(); k++) {
+                kf << "[";
+                for (size_t l = 0; l < msg_history[i][j][k].size(); l++) {
+                    if (k == msg_history[i][j].size()-1) {
+                        kf << "\"" << msg_history[i][j][k][l] << "\"";
+                    }
+                    else {
+                        kf << "\"" << msg_history[i][j][k][l] << "\"" << ", ";
+                    }
+                }
+                if (k == msg_history[i][j].size()-1) {
+                    kf << "]";
+                }else {
+                    kf << "], ";
+                }
+
+            }
+            if (j == msg_history[i].size()-1) {
+                kf << "]";
+            }else {
+                kf << "], ";
+            }
+        }
+        if (i == msg_history.size()-1) {
+            kf << "]";
+        }else {
+            kf << "], ";
+        }
+    }
+    kf << "]\n";
+
+    kf << "}";
     kf.close();
 }

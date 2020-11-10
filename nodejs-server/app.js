@@ -40,7 +40,7 @@ function reqData(tick) {
             }
         }
         response += ".";
-        console.log(response);
+        // console.log(response);
     }
     else
     {
@@ -76,7 +76,7 @@ function reqData(tick) {
         }
 
         response += ".";
-        console.log(response);
+        // console.log(response);
     }
 
     return response;
@@ -94,7 +94,7 @@ const server = net.createServer(function (socket) {
         const message = data.toString().split("\n");
 
         for (let i = 0; i < message.length; i++) {
-            console.log(message[i]);
+            //console.log(message[i]);
             if (message[i] === ".") {
                 break;
             }
