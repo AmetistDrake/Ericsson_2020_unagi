@@ -174,7 +174,7 @@ public:
 //int main(int argc, char **argv) { // argc = argument count, argv = argument vector, char** = dinamikus string tömb
 int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd) { // msdn entry point
     /* config area */
-    const char host_name[] = "nagyd.ddns.net"; // "ericsson.dyndns.org"; //  // "localhost";//
+    const char host_name[] = "nagyd.ddns.net"; // "localhost"; // "ericsson.dyndns.org"; //
     const unsigned short port = 1234; //11224;
     const char token[] = "Y6oosTdXL";
     int seed = 2;

@@ -7,9 +7,10 @@ let clients = [];
 let vaccine_data = []; // ID = country ID, TPC = total production capacity, RV = reserved vaccines, ASID =
 let safe = [];
 let warn = [];
+let game_id = 0;
 
 let test1 = [
-    [Math.floor(Math.random()*1000000), 44], // gameID, maxtick,
+    [game_id, 44], // gameID, maxtick,
     [6, 4], // y, x
     [[0, 10, 10]], // country start data: countryID, TPC, RV
     [1569741360, 1785505948, 516548029, 1302116447],
@@ -101,6 +102,9 @@ const server = net.createServer(function (socket) {
         }
 
         if (message[0].includes("START")) {
+            game_id = Math.floor(Math.random()*(999999-100000+1)+100000);
+            test1[0][0] = game_id;
+
             response = reqData(-1);
             socket.write(response);
             response = reqData(0);
