@@ -26,6 +26,7 @@ private:
     bool readHelperFunc(std::string& line);
 public:
     int countries_count {};
+    int max_tick {};
     std::array<unsigned int, 3> data{};
     std::array<std::uint32_t, 4> factors{};
     std::array<unsigned short, 2> dimension{};

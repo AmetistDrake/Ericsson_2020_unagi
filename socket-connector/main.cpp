@@ -1,7 +1,6 @@
 #include "console_connector.h"
 #include "socket_connector.h"
 #include "Solver.h"
-#include "win32-draw/Draw.hpp"
 
 #include <windows.h>
 #include <iostream>
@@ -166,9 +165,7 @@ public:
                 }
             }
         }
-
-        Draw d(hInstance);
-        d.draw(your_solver.field_display);
+        your_solver.create_json_from_data();
 
         std::cerr << "[main] " << "Game over" << std::endl;
     }
@@ -177,7 +174,7 @@ public:
 //int main(int argc, char **argv) { // argc = argument count, argv = argument vector, char** = dinamikus string tömb
 int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd) { // msdn entry point
     /* config area */
-    const char host_name[] = "nagyd.ddns.net";// "localhost";
+    const char host_name[] = "nagyd.ddns.net"; // "localhost";//
     const unsigned short port = 1234;
     const char token[] = "Y6oosTdXL";
     int seed = 2;

@@ -17,7 +17,7 @@ bool Reader::readHelperFunc(std::string& line) {
         std::stringstream(std::move(line).substr(4)) >> data[0] >> data[1] >> data[2];
     } else if (!line.rfind("START", 0)) {
         needAnsw = false;
-        std::stringstream(std::move(line).substr(6)) >> data[0] >> data[1] >> countries_count;
+        std::stringstream(std::move(line).substr(6)) >> data[0] >> max_tick >> countries_count;
     } else if (!line.rfind("FACTORS", 0)) {
         std::stringstream(std::move(line).substr(8)) >> factors[0] >> factors[1] >> factors[2] >> factors[3];
     } else if (!line.rfind("FIELDS", 0)) {

@@ -5,6 +5,8 @@
 #include <vector>
 #include "Reader.h"
 #include <unordered_set>
+#include <fstream>
+#include <filesystem>
 
 class Solver {
 private:
@@ -17,6 +19,7 @@ private:
     std::vector<std::vector<std::vector<unsigned int>>> infection_history;
     std::vector<std::vector<std::vector<unsigned int>>> healing_history;
     std::vector<std::vector<std::vector<unsigned int>>> vaccine_history;
+    std::vector<std::vector<std::vector<std::vector<std::string>>>> msg_history;
 
     std::unordered_set<unsigned int> infected_districts;
     std::vector<Action> BACK;
@@ -34,7 +37,7 @@ public:
     Solver();
     ~Solver();
     std::vector<std::string> process(const std::vector<std::string>& infos);
-    std::vector<std::vector<std::vector<std::vector<std::string>>>> field_display; // field_info[tick][y][x][message_index]
+    void create_json_from_data();
 };
 
 
