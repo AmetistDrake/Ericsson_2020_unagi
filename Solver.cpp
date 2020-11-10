@@ -39,12 +39,10 @@ vector<string> Solver::process(const vector<string>& infos) {
             if (reader.areas[y][x].infectionRate > 0) {
                 unsigned int h = healing(y, x);
                 healing_history[reader.data[1]][y][x] = h;
-                cout << h << " ";
                 reader.areas[y][x].healthRate += h;
                 reader.areas[y][x].infectionRate -= h;
             }
         }
-        cout << endl;
     }
     // 3) megtisztítottról visszekerül az országraktárba
     update_infected_districts();
@@ -183,7 +181,7 @@ unsigned int Solver::healing(unsigned int y, unsigned int x) {
     unsigned int curr_tick = reader.data[1];
     unsigned int curr_infection_rate;
 
-    if (width + height < curr_tick) {
+//    if (width + height < curr_tick) {
 //        ///******************* MÁSODIK FORDULÓ *****************///
 //        unsigned int IR = infection_rate_history[curr_tick - 1][y][x];
 //        unsigned int P = reader.areas[y][x].population; //start_info
@@ -197,12 +195,30 @@ unsigned int Solver::healing(unsigned int y, unsigned int x) {
 //        int m = ceil(X / P); //ennyivel csökken a tartalék vakcinaszám (összesen)
 //        ///vakcina miatti gyógyulás
 //        if (IR > 0 && n > 0) {
+//            reader.areas[y][x].healthRate += X; // EZ ROSSZ! Itt nem szabad változtatni, arra van a visszatérési érték
+//            reader.areas[y][x].infectionRate -= X; // EZ IS!
 //            ///tartalék vakcinaszám csökkentése
 //            for (auto a : reader.countries) {
 //                a.second.RV = floor(a.second.RV * (n - m) / n);
 //            }
 //        }
 //        ///******************* MÁSODIK FORDULÓ *****************///
+//        // min. ker. az adott cella múltbeli fertőzöttésgei között width+height tickre visszamenően
+//        unsigned int min_infection_rate = 100;
+//        for (unsigned int i = 1; i <= (width + height); i++) {
+//            curr_infection_rate = infection_rate_history[curr_tick - i][y][x];
+//            if (curr_infection_rate < min_infection_rate) {
+//                min_infection_rate = curr_infection_rate;
+//            }
+//        }
+//        unsigned int h = floor(min_infection_rate * (reader.factors[0] % 10) / 20.0);
+//        update_factor(reader.factors[0]);
+//        return floor(h * (IR - X) / IR); ///2. fordulós visszatérési érték
+//    } else {
+//        return 0;
+//    }
+
+    if (width + height < curr_tick) {
         // min. ker. az adott cella múltbeli fertőzöttésgei között width+height tickre visszamenően
         unsigned int min_infection_rate = 100;
         for (unsigned int i = 1; i <= (width + height); i++) {
@@ -211,9 +227,9 @@ unsigned int Solver::healing(unsigned int y, unsigned int x) {
                 min_infection_rate = curr_infection_rate;
             }
         }
-        unsigned int h = floor(min_infection_rate * (reader.factors[0] % 10) / 20.0);
+        unsigned int result = floor(min_infection_rate * (reader.factors[0] % 10) / 20.0);
         update_factor(reader.factors[0]);
-        return floor(h * (IR - X) / IR); ///2. fordulós visszatérési érték
+        return result;
     } else {
         return 0;
     }
