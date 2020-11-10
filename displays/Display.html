@@ -311,11 +311,23 @@
 
                 DrawMap();
             }
+            if (curr_tick+1 === max_tick) {
+                curr_tick = 0;
+                tick_label.innerHTML = curr_tick;
+
+                DrawMap();
+            }
         }
 
         function prev_tick() {
             if (curr_tick > 0) {
                 curr_tick--;
+                tick_label.innerHTML = curr_tick;
+
+                DrawMap();
+            }
+            if (curr_tick === 0 && max_tick !== 0) {
+                curr_tick = max_tick-1;
                 tick_label.innerHTML = curr_tick;
 
                 DrawMap();
