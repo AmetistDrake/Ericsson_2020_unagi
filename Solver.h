@@ -7,7 +7,7 @@
 #include <unordered_set>
 #include <fstream>
 #include <filesystem>
-
+# include <set>
 class Solver {
 private:
     Reader reader;
@@ -21,6 +21,8 @@ private:
     std::vector<std::vector<std::vector<unsigned int>>> health_rate_history;
     std::vector<std::vector<std::vector<unsigned int>>> vaccine_history;
     std::vector<std::vector<std::vector<std::vector<std::string>>>> msg_history;
+    std::vector<std::set<std::pair<int, int>>> keruletek;
+    std::vector<std::set<int>> szomszedsag;
 
     std::unordered_set<unsigned int> infected_districts;
     std::vector<Action> BACK;
@@ -33,7 +35,11 @@ private:
     void cleaned_back(); // 3mas pont a második fordulóban
     void answer_msg(std::vector<std::string>&);
     void vaccine_production();
-
+    void back_to_reserve(const Action &temp);
+    std::set<std::pair<int, int>> from_reserve();
+    void district_areas();
+    void DFS(std::vector<std::set<int>> &clear_szomszedsag);
+    void possibilities(std::set<std::pair<int, int>> &possible_choice, const std::set<int> &possible_districts, const std::vector<std::set<int>> &clear_szomszedsag);
 public:
     Solver();
     ~Solver();
