@@ -318,14 +318,14 @@ void Solver::answer_msg(vector<std::string> &commands) {
 
     // Ez legyen kikommentelve a beadottban
     /***********************/
-    for (auto& row : reader.areas) {
-        for (auto& area : row) {
-            ss << area.infectionRate << " ";
-        }
-        getline(ss, command);
-        commands.push_back(command);
-        ss.clear();
-    }
+//    for (auto& row : reader.areas) {
+//        for (auto& area : row) {
+//            ss << area.infectionRate << " ";
+//        }
+//        getline(ss, command);
+//        commands.push_back(command);
+//        ss.clear();
+//    }
     /***********************/
 
     commands.emplace_back(".");

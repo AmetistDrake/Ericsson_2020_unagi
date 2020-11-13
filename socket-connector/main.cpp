@@ -107,7 +107,7 @@ public:
     }
 
 public:
-    void run(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd) { // a paraméterek a megjelenítő miatt kellenek
+    void run() {
         while (_connector->is_valid()) {
             auto measure_start = std::chrono::steady_clock::now();
 
@@ -174,13 +174,13 @@ public:
 //int main(int argc, char **argv) { // argc = argument count, argv = argument vector, char** = dinamikus string tömb
 int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd) { // msdn entry point
     /* config area */
-    const char host_name[] = "nagyd.ddns.net"; // "localhost"; // "ericsson.dyndns.org"; //
-    const unsigned short port = 1234; //11224;
+    const char host_name[] =  "ericsson.dyndns.org"; //"nagyd.ddns.net"; // "localhost"; //
+    const unsigned short port = 11224; // 1234; //
     const char token[] = "Y6oosTdXL";
     int seed = 2;
 
     try {
-        client(std::make_unique<socket_connector>(host_name, port), 2000, token, seed).run(hInstance, hPrevInstance, lpCmdLine, nShowCmd);
+        client(std::make_unique<socket_connector>(host_name, port), 2000, token, seed).run();
     } catch (std::exception& e) {
         std::cerr << "[main] " << "Exception throwed. what(): " << e.what() << std::endl;
     }

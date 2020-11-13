@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Unagi</title>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.js"></script>
     <style type="text/css">
         :root {
             --desktop-font-size: 1.3rem/1.5;
@@ -211,16 +212,76 @@
         let next_btn = document.getElementById("next_btn");
         let prev_btn = document.getElementById("prev_btn");
 
+        let translatePos = {
+            x: 0,
+            y: 0
+        };
+        let scale = 1.0;
+        let scaleMultiplier = 0.8;
+        let startDragOffset = {};
+        let mouseDown = false;
+
         let curr_tick = 0;
         let max_tick = 0;
-        let N = 5;
-        let M = 5;
+        let N = 4;
+        let M = 4;
         let district_colors = {};
         let disp_info;
 
+        function draw(){
+            // clear canvas
+            context.clearRect(0, 0, canvas.width, canvas.height);
+
+            context.save();
+            context.translate(translatePos.x, translatePos.y);
+            context.scale(scale, scale);
+
+            DrawMap();
+
+            context.restore();
+        }
+
+        function getMousePos(event) {
+            let rect = canvas.getBoundingClientRect();
+            let scaleX = canvas.width / rect.width;
+            let scaleY = canvas.height / rect.height;
+
+            return {
+                x: (event.clientX - rect.left) * scaleX,   // scale mouse coordinates after they have
+                y: (event.clientY - rect.top) * scaleY // been adjusted to be relative to element
+            }
+        }
+
+        // add event listeners to handle screen drag
+        canvas.addEventListener("mousedown", function(evt){
+            mouseDown = true;
+            startDragOffset.x = getMousePos(evt).x - translatePos.x;
+            startDragOffset.y = getMousePos(evt).y - translatePos.y;
+        });
+
+        canvas.addEventListener("mouseup", function(evt){
+            mouseDown = false;
+        });
+
+        canvas.addEventListener("mouseover", function(evt){
+            mouseDown = false;
+        });
+
+        canvas.addEventListener("mouseout", function(evt){
+            mouseDown = false;
+        });
+
+        canvas.addEventListener("mousemove", function(evt){
+            if (mouseDown) {
+                translatePos.x = getMousePos(evt).x - startDragOffset.x;
+                translatePos.y = getMousePos(evt).y - startDragOffset.y;
+                draw();
+            }
+        });
+
         function DrawMap() {
             let f_width = canvas.width /N;
-            let f_heigh = canvas.height /M;
+            let f_height = canvas.height /M;
             let divider = 6;
             let text_divider = 10;
 
@@ -229,7 +290,7 @@
                 for(let i = 0; i < N; i++) {
                     for (let j = 0; j < M; j++) {
                         context.fillStyle = 'rgb(150,150,150)';
-                        context.fillRect(i*f_width, j*f_heigh, f_width, f_heigh);
+                        context.fillRect(i*f_width, O.y + j*f_height, f_width, f_height);
 
                         let color;
                         if (disp_info.district[j][i] in district_colors){
@@ -245,7 +306,7 @@
                         }
 
                         context.fillStyle ='rgba('+color.R+','+color.G+','+color.B+',0.5)';
-                        context.fillRect(i*f_width+1, j*f_heigh+1, f_width-2, f_heigh-2);
+                        context.fillRect(i*f_width+1, j*f_height+1, f_width-2, f_height-2);
                     }
                 }
 
@@ -260,62 +321,62 @@
                         context.fillStyle = 'rgb(255,' + String(x) + ',' + String(x) + ')';
                         context.align = "center";
                         txt = disp_info.infection_rate[curr_tick][j][i];
-                        context.fillText(txt, i * f_width + f_width / 2 - 2, j * f_heigh + f_heigh / 2 + 3);
+                        context.fillText(txt, i*f_width+f_width / 2 - 2, j * f_height + f_height / 2 + 3);
 
                         // Population
                         context.fillStyle = 'rgb(158,185,226)';
-                        context.fillRect(i * f_width + 1, j * f_heigh + 1, f_width / divider, f_heigh / divider);
+                        context.fillRect(i * f_width + 1, j * f_height + 1, f_width / divider, f_height / divider);
 
                         context.font = String(f_width / 2 / text_divider) + "px Helvetica";
                         context.fillStyle = "white";
                         context.align = "center";
                         txt = disp_info.population[j][i];
-                        context.fillText(txt, i * f_width + f_width / divider / 2 - txt_offset, j * f_heigh + f_heigh / divider / 2 + txt_offset);
+                        context.fillText(txt, i * f_width + f_width / divider / 2 - txt_offset, j * f_height + f_height / divider / 2 + txt_offset);
 
                         // District
                         let color = district_colors[disp_info.district[j][i]];
                         context.fillStyle = 'rgba(' + color.R + ',' + color.G + ',' + color.B + ',0.5)';
-                        context.fillRect(i * f_width + 1, j * f_heigh + 1 + f_heigh / divider, f_width / divider, f_heigh / divider);
+                        context.fillRect(i * f_width + 1, j * f_height + 1 + f_height / divider, f_width / divider, f_height / divider);
 
                         context.font = String(f_width / 2 / text_divider) + "px Helvetica";
                         context.fillStyle = "white";
                         context.align = "center";
                         txt = disp_info.district[j][i];
-                        context.fillText(txt, i * f_width + f_width / divider / 2 - txt_offset, j * f_heigh + f_heigh / divider / 2 + txt_offset + f_heigh / divider);
+                        context.fillText(txt, i * f_width + f_width / divider / 2 - txt_offset, j * f_height + f_height / divider / 2 + txt_offset + f_height / divider);
 
                         // A healing és az inf el vannak tolódva, mindig azt az inf_rate-et látom, amivel változott azt előző állapot
                         if (curr_tick + 1 !== max_tick) {
                             // Infection
                             context.fillStyle = 'rgba(255, 255,255, 0.7)';
-                            context.fillRect(i * f_width + 1 + f_width - f_width / divider, j * f_heigh + 1, f_width / divider, f_heigh / divider);
+                            context.fillRect(i*f_width+1+f_width-f_width/divider, j*f_height+1, f_width/divider, f_height/divider);
 
                             context.font = String(f_width / 2 / text_divider) + "px Helvetica";
                             context.fillStyle = "red";
                             context.align = "center";
                             txt = disp_info.infection[curr_tick + 1][j][i];
-                            context.fillText("+ " + txt, i * f_width + f_width / divider / 2 - txt_offset + f_width - f_width / divider, j * f_heigh + f_heigh / divider / 2 + txt_offset);
+                            context.fillText("+ "+txt, i*f_width+f_width/divider/2-txt_offset+f_width-f_width/divider, j*f_height+f_height/divider/2+txt_offset);
 
                             // Healing
                             context.fillStyle = 'rgba(255, 255,255, 0.7)';
-                            context.fillRect(i * f_width + 1 + f_width - f_width / divider, j * f_heigh + 1 + f_heigh / divider, f_width / divider, f_heigh / divider);
+                            context.fillRect(i * f_width + 1 + f_width - f_width / divider, j * f_height + 1 + f_height / divider, f_width / divider, f_height / divider);
 
                             context.font = String(f_width / 2 / text_divider) + "px Helvetica";
                             context.fillStyle = "green";
                             context.align = "center";
                             txt = disp_info.healing[curr_tick + 1][j][i];
-                            context.fillText("- " + txt, i * f_width + f_width / divider / 2 - txt_offset + f_width - f_width / divider, j * f_heigh + f_heigh / divider / 2 + txt_offset + f_heigh / divider);
+                            context.fillText("- " + txt, i * f_width + f_width / divider / 2 - txt_offset + f_width - f_width / divider, j * f_height + f_height / divider / 2 + txt_offset + f_height / divider);
                         }
 
                         // Health rate
                         context.fillStyle = 'rgba(0,0,0, 0.4)';
-                        context.fillRect(i * f_width + 1 + 0 * f_width / divider, j * f_heigh + 1 + f_heigh - f_heigh / divider, f_width / divider, f_heigh / divider);
+                        context.fillRect(i * f_width + 1 + 0 * f_width / divider, j * f_height + 1 + f_height - f_height / divider, f_width / divider, f_height / divider);
 
                         context.font = String(f_width / 2 / text_divider) + "px Helvetica";
                         context.fillStyle = "white";
                         context.align = "center";
                         txt = disp_info.health_rate[curr_tick][j][i];
                         let extra_txt_offset = 20;
-                        context.fillText("HR: " + txt, i * f_width + f_width / divider / 2 - txt_offset - extra_txt_offset, j * f_heigh + f_heigh / divider / 2 + txt_offset + f_heigh - f_heigh / divider);
+                        context.fillText("HR: " + txt, i * f_width + f_width / divider / 2 - txt_offset - extra_txt_offset, j * f_height + f_height / divider / 2 + txt_offset + f_height - f_height / divider);
 
                     }
                 }
@@ -324,10 +385,10 @@
                 for(let i = 0; i < N; i++) {
                     for (let j = 0; j < M; j++) {
                         context.fillStyle = 'rgba(150,150,150,1)';
-                        context.fillRect(i*f_width, j*f_heigh, f_width, f_heigh);
+                        context.fillRect(i*f_width, j*f_height, f_width, f_height);
 
                         context.fillStyle = 'rgba(255,255,255,0.5)';
-                        context.fillRect(i*f_width+1, j*f_heigh+1, f_width-2, f_heigh-2);
+                        context.fillRect(i*f_width+1, j*f_height+1, f_width-2, f_height-2);
                     }
                 }
             }
@@ -338,13 +399,13 @@
                 curr_tick++;
                 tick_label.innerHTML = curr_tick;
 
-                DrawMap();
+                draw();
             }
             if (curr_tick+1 === max_tick) {
                 curr_tick = 0;
                 tick_label.innerHTML = curr_tick;
 
-                DrawMap();
+                draw();
             }
         }
 
@@ -377,7 +438,7 @@
             max_tick_label.innerText = disp_info.max_tick;
             tick_label.innerHTML = curr_tick;
 
-            DrawMap();
+            draw();
         }
 
         function loadFile() {
@@ -401,23 +462,11 @@
             }
         }
 
-        function getMousePos(event) {
-            let rect = canvas.getBoundingClientRect();
-            let scaleX = canvas.width / rect.width;
-            let scaleY = canvas.height / rect.height;
-
-            return {
-                x: (event.clientX - rect.left) * scaleX,   // scale mouse coordinates after they have
-                y: (event.clientY - rect.top) * scaleY     // been adjusted to be relative to element
-            }
-        }
-
         function resizeCanvas() {
             canvas.width = canvas.clientWidth*2; // a szorzóval állítható a canvas felbontása
             canvas.height = canvas.width/1.8;
-            DrawMap();
+            draw();
         }
-
         // a <script> tag scopejában lévő függvényívások loopolva vannak
         resizeCanvas();
         // Event handler to resize the canvas when the document view is changed
@@ -425,10 +474,6 @@
         next_btn.addEventListener("click", next_tick);
         prev_btn.addEventListener("click", prev_tick);
         window.addEventListener('resize', resizeCanvas, false);
-        canvas.addEventListener('mousemove', event => {
-            let P = getMousePos(event);
-            //context.fillRect(P.x, P.y, 1, 1);
-        })
     </script>
 </body>
 </html>
