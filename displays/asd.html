@@ -97,7 +97,7 @@
 
         function zoom_function (event, wheel) {
             let zoom = Math.exp(wheel*zoomIntensity);
-            zoom = 2;
+            zoom = 1.2;
             scale *= zoom;
 
             let mousePos = {
@@ -111,18 +111,18 @@
             full_canvas_origin.x += origin.x;
             full_canvas_origin.y += origin.y;
 
-            context.translate(full_canvas_origin.x, full_canvas_origin.y);
             context.scale(scale, scale); // a scale a full_canvas origójától terjed ki, és olyan mintha eltolná a pontokat magától
-            full_canvas_origin.x /= scale; // a scale miatt az összes többi ponttól zoom-szoros távolságba kerül, ezt kell kivonni az origóból, hogy jó eredményt kapjunk az új origóra
-            full_canvas_origin.y /= scale;
-            origin.x /= scale;
+            // a scale miatt az összes többi ponttól zoom-szoros távolságba kerül, ezt kell kivonni az origóból, hogy jó eredményt kapjunk az új origóra
+
+            full_canvas_origin.x *= zoom/scale; // megnöveljük a távolságot zoom-szorosra a ponttól, majd normáljuk a scale szerint
+            full_canvas_origin.y *= zoom/scale; // negatív, az új full canvas origó az egér pontból
+
+            origin.x /= scale; // negatív, a régi egér pozícióból számítva
             origin.y /= scale;
-            origin.x -= full_canvas_origin.x;
-            origin.y -= full_canvas_origin.y;
+            origin.x = -full_canvas_origin.x + origin.x; // pozitív, az új full_canvas origótól számítva
+            origin.y = -full_canvas_origin.y + origin.y;
 
             context.translate(full_canvas_origin.x, full_canvas_origin.y);
-            origin.x -= full_canvas_origin.x;
-            origin.y -= full_canvas_origin.y;
 
             context.clearRect(origin.x, origin.y, canvas.width, canvas.height);
             draw();
