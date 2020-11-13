@@ -2,11 +2,12 @@
 #include <iostream>
 #include <sstream>
 #include <cmath>
+#include <set>
 #include <algorithm>
 
 using namespace std;
 
-vector<string> Solver::process(const vector<string>& infos) {
+vector<string> Solver::process(const vector<string> &infos) {
     /********************************************/      /// A tesztelés a beadott verziótól itt különül el
     if (infos.size() == 1 && infos[0] == "unagi") {     // amikor a consolon keresztül kommunikál a program
         reader.readDataConsole();
@@ -23,14 +24,28 @@ vector<string> Solver::process(const vector<string>& infos) {
     }
     /********************************************/      /// Általános válasz:
 
-    vector<vector<vector<string>>> msg_tmp (reader.dimension[0], vector<vector<string>>(reader.dimension[1], vector<string>()));
+    vector<vector<vector<string>>> msg_tmp(reader.dimension[0],
+                                           vector<vector<string>>(reader.dimension[1], vector<string>()));
     msg_history.push_back(msg_tmp);
 
     // healing - fertőzöttek gyógyulása
     vector<vector<unsigned int>> tmp(reader.dimension[0],
                                      vector<unsigned int>(reader.dimension[1], 0));
     // 1) vakcina elhelyezés, csoportosítás
+
     vaccine_history.push_back(tmp);
+    if (reader.data[1] == 0) {
+        vaccine_history.push_back(tmp);
+    }// legyen benne egy jövő, ami feltölthető a késleltetésekkel
+    else {
+        for (size_t x = 0; x < reader.dimension[1]; x++) {
+            for (size_t y = 0; y < reader.dimension[0]; y++) {
+                vaccine_history[reader.data[1] - 1][y][x] = reader.areas[y][x].vaccine;
+                reader.areas[y][x].vaccine += vaccine_history[reader.data[1]][y][x];
+            }
+        }
+    }
+
 
     // 2) healing - fertőzöttek gyógyulása
     healing_history.push_back(tmp);
@@ -227,10 +242,13 @@ void Solver::vaccine_production() {
                 if (reader.areas[y][x].district == clean) {
                     for (auto nbs : neighbours) {
                         pair<int, int> c(y - nbs.first, x - nbs.second);
-                        if (reader.countries[country_id].ASID.find(reader.areas[c.first][c.second].district) ==
-                            reader.countries[country_id].ASID.end()) {
-                            //szomszed még nem megtisztított
-                            minus_val += (6 - tick_info[0][c.first][c.second].population);
+                        if ((0 <= c.first and c.first < reader.dimension[0] and
+                             0 <= c.second and c.second < reader.dimension[1])) {
+                            if (reader.countries[country_id].ASID.find(reader.areas[c.first][c.second].district) ==
+                                reader.countries[country_id].ASID.end()) {
+                                //szomszed még nem megtisztított
+                                minus_val += (6 - tick_info[0][c.first][c.second].population);
+                            }
                         }
                     }
                     sum_of_areas++;
@@ -243,25 +261,158 @@ void Solver::vaccine_production() {
         value = 0;
     }
     reader.countries[country_id].TPC = value;
+    for (auto c: reader.countries) {
+        c.second.RV += c.second.TPC;
+    }
 }
 
 void Solver::cleaned_back() {
     unsigned int curr_tick = reader.data[1];
     int country_id = reader.data[2];
-    // for(auto district : reader.countries[country_id].ASID){
 
     for (size_t y = 0; y < reader.areas.size(); y++) {
 
         for (std::size_t x = 0; x < reader.areas[y].size(); x++) {
             if (reader.countries[country_id].ASID.find(reader.areas[y][x].district)
-                != reader.countries[country_id].ASID.end() and vaccine_history[curr_tick][y][x] != 0) {
-                Action temp;
-                temp.val = vaccine_history[curr_tick][y][x];
+                != reader.countries[country_id].ASID.end() and reader.areas[y][x].vaccine != 0) {
+                Action temp{};
+                temp.val = reader.areas[y][x].vaccine;
+                if (vaccine_history[curr_tick][y][x] > 0) { // késleltetettek
+                    temp.val += vaccine_history[curr_tick + 1][y][x];
+                    vaccine_history[curr_tick + 1][y][x] = 0;
+                }
                 temp.x = x;
                 temp.y = y;
-                BACK.push_back(temp);
-                //itt majd am meg  kell hívni a visszarakos függvényt csak ilyen még nincs
-                //de megy a raktárba a val és nullázódik a terület raktára
+                back_to_reserve(temp);
+
+            }
+        }
+    }
+
+}
+
+void Solver::back_to_reserve(const Solver::Action &temp) {
+    int country_id = reader.data[2];
+    if (reader.areas[temp.y][temp.x].vaccine - temp.val >= 1) {
+        reader.areas[temp.y][temp.x].vaccine -= temp.val;
+        reader.countries[country_id].RV += int(temp.val);
+        BACK.push_back(temp);
+    }
+
+
+}
+
+void Solver::district_areas(std::vector<std::vector<std::pair<int, int>>> &keruletek, vector<set<int>> &szomszedsag) {
+
+
+    for (size_t x = 0; x < reader.dimension[1]; x++) {
+        for (size_t y = 0; y < reader.dimension[0]; y++) {
+            keruletek[reader.areas[y][x].district].push_back({y, x});
+        }
+    }
+
+    vector<std::pair<int, int>> neighbours{{-1, 0},
+                                           {0,  -1},
+                                           {1,  0},
+                                           {0,  1}};
+    for (size_t x = 0; x < reader.dimension[1]; x++) {
+        for (size_t y = 0; y < reader.dimension[0]; y++) {
+            for (auto nbs : neighbours) {
+                pair<int, int> c(y - nbs.first, x - nbs.second);
+                if ((0 <= c.first and c.first < reader.dimension[0] and 0 <= c.second and
+                     c.second < reader.dimension[1])) {
+                    if (reader.areas[c.first][c.second].district != reader.areas[y][x].district) {
+                        szomszedsag[reader.areas[y][x].district].insert(reader.areas[c.first][c.second].district);
+
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+void Solver::from_reserve() {
+    set<int> num_of_dist;
+    for (size_t x = 0; x < reader.dimension[1]; x++) {
+        for (size_t y = 0; y < reader.dimension[0]; y++) {
+            num_of_dist.insert(reader.areas[y][x].district);
+        }
+    }
+    vector<set<int>> szomszedsag(num_of_dist.size());
+    vector<set<int>> clear_szomszedsag(num_of_dist.size());
+    vector<vector<pair<int, int>>> keruletek(num_of_dist.size());
+    district_areas(keruletek, szomszedsag);
+    int country_id = reader.data[2];
+    set<pair<int, int>> possible;
+
+    for (size_t i = 0; i < szomszedsag.size(); i++) {
+        auto it_1 = reader.safe_districts.find(i);
+        if (it_1 != reader.safe_districts.end()) {
+            for (auto j : szomszedsag[i]) {
+                auto it_2 = reader.safe_districts.find(j);
+
+            }
+        }
+    }
+
+
+    for (
+            size_t x = 0;
+            x < reader.dimension[1]; x++) {
+        for (
+                size_t y = 0;
+                y < reader.dimension[0]; y++) {
+            if (reader.areas[y][x].vaccine > 0) {
+                possible.insert({
+                                        y, x});
+            }
+        }
+    }
+// Ha nincs egy területen se tartalék vakcinája az országnak
+    if (possible.
+
+            empty()
+
+            ) {
+        set<pair<int, int>> possible_choice;
+        set<int> possible_district;
+        for (
+                size_t x = 0;
+                x < reader.dimension[1]; x++) {
+            for (
+                    size_t y = 0;
+                    y < reader.dimension[0]; y++) {
+                if (x == 0 or y == 0 or x == reader.dimension[1] - 1 or y == reader.dimension[0] - 1) {
+                    if (reader.countries[country_id].ASID.
+                            find(reader
+                                         .areas[y][x].district)
+                        == reader.countries[country_id].ASID.
+
+                            end()
+
+                            ) {
+                        possible_district.
+                                insert(reader
+                                               .areas[y][x].district); // szélén nem tiszta kerületek
+                    } else {
+                        for (auto i : szomszedsag[reader.areas[y][x].district]) {
+                            for (auto country : reader.countries) {
+                                if (country.second.ASID. find(i)    == country.second.ASID.
+
+                                        end()
+
+                                        ) {// ha a megtisztított egy nem megtisztítottal van kapcsolatban
+
+                                }
+                            }
+                        }
+
+//reader.countries[country_id].ASID.find(reader.areas[y][x].district)
+//!= reader.countries[country_id].ASID.end()
+                    }
+                }
+
             }
         }
     }
@@ -307,34 +458,32 @@ void Solver::create_json_from_data() {
     ofstream kf;
     string path_str = "../displays/json_files/";
     filesystem::path path = path_str;
-    if (!filesystem::exists(path))
-    {
+    if (!filesystem::exists(path)) {
         filesystem::create_directories(path);
     }
     kf.open(path_str + to_string(reader.data[0]) + ".json");
     kf << "{\n";
 
-    kf << "\t\"N\" : " << to_string(reader.dimension[1]) <<",\n";
-    kf << "\t\"M\" : " << to_string(reader.dimension[0]) <<",\n";
-    kf << "\t\"counry_id\" : " << to_string(reader.data[2]) <<",\n";
-    kf << "\t\"num_of_countries\" : " << to_string(reader.countries_count) <<",\n";
-    kf << "\t\"country_id\" : " << to_string(reader.data[2]) <<",\n";
-    kf << "\t\"max_tick\" : " << to_string(reader.max_tick) <<",\n";
+    kf << "\t\"N\" : " << to_string(reader.dimension[1]) << ",\n";
+    kf << "\t\"M\" : " << to_string(reader.dimension[0]) << ",\n";
+    kf << "\t\"counry_id\" : " << to_string(reader.data[2]) << ",\n";
+    kf << "\t\"num_of_countries\" : " << to_string(reader.countries_count) << ",\n";
+    kf << "\t\"country_id\" : " << to_string(reader.data[2]) << ",\n";
+    kf << "\t\"max_tick\" : " << to_string(reader.max_tick) << ",\n";
 
     kf << "\t\"population\" : [";
     for (size_t i = 0; i < reader.areas.size(); i++) {
         kf << "[";
-        for(size_t j = 0; j < reader.areas[i].size(); j++) {
-            if (j == reader.areas[i].size()-1) {
+        for (size_t j = 0; j < reader.areas[i].size(); j++) {
+            if (j == reader.areas[i].size() - 1) {
                 kf << to_string(reader.areas[i][j].population);
-            }
-            else {
+            } else {
                 kf << to_string(reader.areas[i][j].population) << ", ";
             }
         }
-        if (i == reader.areas.size()-1) {
+        if (i == reader.areas.size() - 1) {
             kf << "]";
-        }else {
+        } else {
             kf << "], ";
         }
     }
@@ -343,17 +492,16 @@ void Solver::create_json_from_data() {
     kf << "\t\"district\" : [";
     for (size_t i = 0; i < reader.areas.size(); i++) {
         kf << "[";
-        for(size_t j = 0; j < reader.areas[i].size(); j++) {
-            if (j == reader.areas[i].size()-1) {
+        for (size_t j = 0; j < reader.areas[i].size(); j++) {
+            if (j == reader.areas[i].size() - 1) {
                 kf << to_string(reader.areas[i][j].district);
-            }
-            else {
+            } else {
                 kf << to_string(reader.areas[i][j].district) << ", ";
             }
         }
-        if (i == reader.areas.size()-1) {
+        if (i == reader.areas.size() - 1) {
             kf << "]";
-        }else {
+        } else {
             kf << "], ";
         }
     }
@@ -362,25 +510,24 @@ void Solver::create_json_from_data() {
     kf << "\t\"infection\" : [";
     for (size_t i = 0; i < infection_history.size(); i++) {
         kf << "[";
-        for(size_t j = 0; j < infection_history[i].size(); j++) {
+        for (size_t j = 0; j < infection_history[i].size(); j++) {
             kf << "[";
             for (size_t k = 0; k < infection_history[i][j].size(); k++) {
-                if (k == infection_history[i][j].size()-1) {
+                if (k == infection_history[i][j].size() - 1) {
                     kf << to_string(infection_history[i][j][k]);
-                }
-                else {
+                } else {
                     kf << to_string(infection_history[i][j][k]) << ", ";
                 }
             }
-            if (j == infection_history[i].size()-1) {
+            if (j == infection_history[i].size() - 1) {
                 kf << "]";
-            }else {
+            } else {
                 kf << "], ";
             }
         }
-        if (i == infection_history.size()-1) {
+        if (i == infection_history.size() - 1) {
             kf << "]";
-        }else {
+        } else {
             kf << "], ";
         }
     }
@@ -389,25 +536,24 @@ void Solver::create_json_from_data() {
     kf << "\t\"healing\" : [";
     for (size_t i = 0; i < healing_history.size(); i++) {
         kf << "[";
-        for(size_t j = 0; j < healing_history[i].size(); j++) {
+        for (size_t j = 0; j < healing_history[i].size(); j++) {
             kf << "[";
             for (size_t k = 0; k < healing_history[i][j].size(); k++) {
-                if (k == healing_history[i][j].size()-1) {
+                if (k == healing_history[i][j].size() - 1) {
                     kf << to_string(healing_history[i][j][k]);
-                }
-                else {
+                } else {
                     kf << to_string(healing_history[i][j][k]) << ", ";
                 }
             }
-            if (j == healing_history[i].size()-1) {
+            if (j == healing_history[i].size() - 1) {
                 kf << "]";
-            }else {
+            } else {
                 kf << "], ";
             }
         }
-        if (i == healing_history.size()-1) {
+        if (i == healing_history.size() - 1) {
             kf << "]";
-        }else {
+        } else {
             kf << "], ";
         }
     }
@@ -416,25 +562,24 @@ void Solver::create_json_from_data() {
     kf << "\t\"vaccines\" : [";
     for (size_t i = 0; i < vaccine_history.size(); i++) {
         kf << "[";
-        for(size_t j = 0; j < vaccine_history[i].size(); j++) {
+        for (size_t j = 0; j < vaccine_history[i].size(); j++) {
             kf << "[";
             for (size_t k = 0; k < vaccine_history[i][j].size(); k++) {
-                if (k == healing_history[i][j].size()-1) {
+                if (k == healing_history[i][j].size() - 1) {
                     kf << to_string(vaccine_history[i][j][k]);
-                }
-                else {
+                } else {
                     kf << to_string(vaccine_history[i][j][k]) << ", ";
                 }
             }
-            if (j == vaccine_history[i].size()-1) {
+            if (j == vaccine_history[i].size() - 1) {
                 kf << "]";
-            }else {
+            } else {
                 kf << "], ";
             }
         }
-        if (i == vaccine_history.size()-1) {
+        if (i == vaccine_history.size() - 1) {
             kf << "]";
-        }else {
+        } else {
             kf << "], ";
         }
     }
@@ -443,34 +588,33 @@ void Solver::create_json_from_data() {
     kf << "\t\"messages\" : [";
     for (size_t i = 0; i < msg_history.size(); i++) {
         kf << "[";
-        for(size_t j = 0; j < msg_history[i].size(); j++) {
+        for (size_t j = 0; j < msg_history[i].size(); j++) {
             kf << "[";
             for (size_t k = 0; k < msg_history[i][j].size(); k++) {
                 kf << "[";
                 for (size_t l = 0; l < msg_history[i][j][k].size(); l++) {
-                    if (k == msg_history[i][j].size()-1) {
+                    if (k == msg_history[i][j].size() - 1) {
                         kf << "\"" << msg_history[i][j][k][l] << "\"";
-                    }
-                    else {
+                    } else {
                         kf << "\"" << msg_history[i][j][k][l] << "\"" << ", ";
                     }
                 }
-                if (k == msg_history[i][j].size()-1) {
+                if (k == msg_history[i][j].size() - 1) {
                     kf << "]";
-                }else {
+                } else {
                     kf << "], ";
                 }
 
             }
-            if (j == msg_history[i].size()-1) {
+            if (j == msg_history[i].size() - 1) {
                 kf << "]";
-            }else {
+            } else {
                 kf << "], ";
             }
         }
-        if (i == msg_history.size()-1) {
+        if (i == msg_history.size() - 1) {
             kf << "]";
-        }else {
+        } else {
             kf << "], ";
         }
     }
@@ -479,3 +623,8 @@ void Solver::create_json_from_data() {
     kf << "}";
     kf.close();
 }
+
+
+
+
+

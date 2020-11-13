@@ -7,7 +7,7 @@
 #include <unordered_set>
 #include <fstream>
 #include <filesystem>
-
+# include <set>
 class Solver {
 private:
     Reader reader;
@@ -32,6 +32,9 @@ private:
     void cleaned_back(); // 3mas pont a második fordulóban
     void answer_msg(std::vector<std::string>&);
     void vaccine_production();
+    void back_to_reserve(const Action &temp);
+    void from_reserve();
+    void district_areas(std::vector<std ::vector<std::pair<int, int >>>& keruletek, std::vector<std::set<int>> &szomszedsag);
 
 public:
     Solver();
