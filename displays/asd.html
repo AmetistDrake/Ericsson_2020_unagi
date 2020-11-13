@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Unagi</title>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.js"></script>
+    <style type="text/css">
+        html, body{
+            margin: 0;
+            padding: 0;
+        }
+        canvas {
+            border: 1px solid black;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas" width="400" height="300" style="border: 1px solid black"></canvas>
+    <script type="text/javascript">
+        let canvas = document.getElementById("canvas");
+        let context = canvas.getContext("2d");
+
+        let N = 4;
+        let M = 3;
+
+        let full_canvas_origin = {
+            x : 0,
+            y : 0
+        }
+
+        let origin = {
+            x : 0,
+            y : 0
+        }
+
+        var zoomIntensity = 0.2;
+        var scale = 1;
+
+
+
+        let startDragOffset = {};
+        let mouseDown = false;
+
+        canvas.addEventListener("mousedown", function(event){
+            mouseDown = true;
+            startDragOffset.x = event.clientX - originx;
+            startDragOffset.y = event.clientY - originy;
+        });
+
+        canvas.addEventListener("mouseup", function(event){
+            mouseDown = false;
+        });
+
+        canvas.addEventListener("mouseover", function(evt){
+            mouseDown = false;
+        });
+
+        canvas.addEventListener("mouseout", function(evt){
+            mouseDown = false;
+        });
+
+        /*canvas.addEventListener("mousemove", function(event){
+            if (mouseDown) {
+                full_canvas.width = canvas.width * scale;
+                full_canvas.height = canvas.height * scale;
+                full_canvas.left = event.clientX - startDragOffset.x;
+                full_canvas.right = full_canvas.left + scale*canvas.width;
+                full_canvas.top = event.clientY - startDragOffset.y;
+                full_canvas.bot = full_canvas.top + scale*canvas.height;
+
+                if (full_canvas.width > canvas.width) {
+                    originx = event.clientX - startDragOffset.x;
+                    originy = event.clientY - startDragOffset.y;
+
+                    if(full_canvas.left > 0) {
+                        originx = 0;
+                    }
+                    if (full_canvas.right < canvas.width) {
+                        originx = canvas.width-full_canvas.width;
+                    }
+                    if (full_canvas.top > 0) {
+                        originy = 0;
+                    }
+                    if (full_canvas.bot < canvas.height) {
+                        originy = canvas.height-full_canvas.height;
+                    }
+
+                    context.clearRect(0, 0, canvas.width, canvas.height);
+                    context.save();
+                    context.translate(originx, originy);
+                    context.scale(scale, scale);
+                    draw();
+                    context.restore();
+                }
+            }
+        });*/
+
+        function zoom_function (event, wheel) {
+            let zoom = Math.exp(wheel*zoomIntensity);
+            zoom = 2;
+            scale *= zoom;
+
+            let mousePos = {
+                x : event.clientX,
+                y : event.clientY
+            }
+            context.translate(mousePos.x, mousePos.y); // clientX, clientY
+            origin.x = -mousePos.x;// -300; // -clientX
+            origin.y = -mousePos.y;// -100; // -clientY
+
+            full_canvas_origin.x += origin.x;
+            full_canvas_origin.y += origin.y;
+
+            context.translate(full_canvas_origin.x, full_canvas_origin.y);
+            context.scale(scale, scale); // a scale a full_canvas origójától terjed ki, és olyan mintha eltolná a pontokat magától
+            full_canvas_origin.x /= scale; // a scale miatt az összes többi ponttól zoom-szoros távolságba kerül, ezt kell kivonni az origóból, hogy jó eredményt kapjunk az új origóra
+            full_canvas_origin.y /= scale;
+            origin.x /= scale;
+            origin.y /= scale;
+            origin.x -= full_canvas_origin.x;
+            origin.y -= full_canvas_origin.y;
+
+            context.translate(full_canvas_origin.x, full_canvas_origin.y);
+            origin.x -= full_canvas_origin.x;
+            origin.y -= full_canvas_origin.y;
+
+            context.clearRect(origin.x, origin.y, canvas.width, canvas.height);
+            draw();
+            context.fillStyle = "red";
+            context.fillRect(origin.x, origin.y, 10, 10);
+
+            // visszaállítjuk az origót a látható terület sarkára, és elmentjük a full_canvas origóját a rendes méretével, majd reseteljük a scale-t
+            context.translate(origin.x, origin.y);
+            full_canvas_origin.x = -origin.x*scale;
+            full_canvas_origin.y = -origin.y*scale;
+            origin.x = 0;
+            origin.y = 0;
+            context.scale(1/scale, 1/scale);
+
+            // kiszámolom az új nagyított canvas koordinátáját
+
+            // // ellenőrzöm, hogy full canvas lefedi e a canvast, ha nem, akkor eltolom a full canvast az originnak megfelelő koordba
+            // if (scale > 1) {
+            //     if (full_canvas_origin.x > origin.x || full_canvas_origin.x + scale*canvas.width < origin.x + canvas.width) {
+            //         if (full_canvas_origin.x > origin.x) {
+            //             full_canvas_origin.x = origin.x;
+            //             console.log("asd1");
+            //         }
+            //         else {
+            //             full_canvas_origin.x = origin.x + canvas.width - scale*canvas.width;
+            //             console.log("asd2");
+            //         }
+            //
+            //     }
+            //
+            //     if (full_canvas_origin.y > origin.y || full_canvas_origin.y + scale*canvas.height < origin.y + canvas.height) {
+            //         if (full_canvas_origin.y > origin.y) {
+            //             full_canvas_origin.y = origin.y;
+            //             console.log("asd3");
+            //         }
+            //         else {
+            //             full_canvas_origin.y = origin.y + canvas.height - scale*canvas.height;
+            //             console.log("asd4");
+            //         }
+            //     }
+            // }
+            // else {
+            //     full_canvas_origin.x = origin.x;
+            //     full_canvas_origin.y = origin.y;
+            // }
+
+            // áthelyezem a koord rendszert a full canvas origójába, miután kiszámoltam, hogy az eredeti origó hogyan változik
+
+
+            // full_canvas_origin.x = 0;
+            // full_canvas_origin.y = 0;
+            // context.scale(zoom, zoom);
+            // origin.x = zoom*origin.x;
+            // origin.y = zoom*origin.y;
+            //
+            // // visszatérek az originba
+            // full_canvas_origin.x = -origin.x;
+            // full_canvas_origin.y = -origin.y;
+            // context.translate(origin.x, origin.y);
+            // origin.x = 0;
+            // origin.y = 0;
+            //
+            // context.fillRect(0,0, scale*canvas.width, scale*canvas.height);
+            // draw();
+        }
+
+        canvas.onwheel = function (event){
+            var wheel = event.deltaY < 0 ? 1 : -1;
+
+            if (scale > 1) {
+                zoom_function(event, wheel);
+            } else {
+                if (wheel > 0) {
+                    zoom_function(event, wheel);
+                }
+            }
+            console.log(scale);
+        }
+
+        function draw () {
+            context.clearRect(0, 0, canvas.width, canvas.height);
+
+            let f_width = canvas.width / N;
+            let f_height = canvas.height / M;
+            for (let i = 0; i < N; i++) {
+                for (let j = 0; j < M; j++) {
+                    context.fillStyle = 'rgba(150,150,150,1)';
+                    context.fillRect(i*f_width, j*f_height, f_width, f_height);
+                    context.fillStyle = 'rgba(255,255,255,0.5)';
+                    context.fillRect(i*f_width+1, j*f_height+1, f_width-2, f_height-2);
+                }
+            }
+            context.fillStyle = "black";
+            context.fillRect(f_width, f_height, f_width, f_height);
+        }
+        draw();
+    </script>
+
+</body>
