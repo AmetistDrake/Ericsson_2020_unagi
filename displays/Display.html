@@ -482,6 +482,10 @@
         });
 
         canvas.addEventListener("mouseup", function(event){
+            full_canvas_origin.x = origin.x;
+            full_canvas_origin.y = origin.y;
+            origin.x = 0;
+            origin.y = 0;
             mouseDown = false;
         });
 
@@ -496,23 +500,24 @@
         canvas.addEventListener("mousemove", function(event){
             if (mouseDown) {
                 if (scale > 1) {
-                    origin.x = event.clientX - startDragOffset.x;
-                    origin.y = event.clientY - startDragOffset.y;
+                    origin.x = full_canvas_origin.x;
+                    origin.y = full_canvas_origin.y;
+                    origin.x += event.clientX - startDragOffset.x;
+                    origin.y += event.clientY - startDragOffset.y;
 
-                    if(full_canvas_origin.x > 0) {
+                    if(origin.x > 0) {
                         origin.x = 0;
                     }
-                    if (full_canvas_origin.x + canvas.width*scale < canvas.width) {
-                        origin.x = full_canvas_origin.x + canvas.width*scale - canvas.width;
+                    if (origin.x + canvas.width*scale < canvas.width) {
+                        origin.x = canvas.width - canvas.width*scale;
                     }
-                    if (full_canvas_origin.y > 0) {
+                    if (origin.y > 0) {
                         origin.y = 0;
                     }
-                    if (full_canvas_origin.y + canvas.height*scale < canvas.height) {
-                        origin.y = full_canvas_origin.y + canvas.width*scale - canvas.height;
+                    if (origin.y + canvas.height*scale < canvas.height) {
+                        origin.y = canvas.height - canvas.height*scale;
                     }
 
-                    context.clearRect(0, 0, canvas.width, canvas.height);
                     context.save();
                     context.translate(origin.x, origin.y);
                     context.scale(scale, scale);
