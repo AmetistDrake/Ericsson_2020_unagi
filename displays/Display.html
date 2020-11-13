@@ -212,34 +212,12 @@
         let next_btn = document.getElementById("next_btn");
         let prev_btn = document.getElementById("prev_btn");
 
-        let translatePos = {
-            x: 0,
-            y: 0
-        };
-        let scale = 1.0;
-        let scaleMultiplier = 0.8;
-        let startDragOffset = {};
-        let mouseDown = false;
-
         let curr_tick = 0;
         let max_tick = 0;
         let N = 4;
         let M = 4;
         let district_colors = {};
         let disp_info;
-
-        function draw(){
-            // clear canvas
-            context.clearRect(0, 0, canvas.width, canvas.height);
-
-            context.save();
-            context.translate(translatePos.x, translatePos.y);
-            context.scale(scale, scale);
-
-            DrawMap();
-
-            context.restore();
-        }
 
         function getMousePos(event) {
             let rect = canvas.getBoundingClientRect();
@@ -252,33 +230,6 @@
             }
         }
 
-        // add event listeners to handle screen drag
-        canvas.addEventListener("mousedown", function(evt){
-            mouseDown = true;
-            startDragOffset.x = getMousePos(evt).x - translatePos.x;
-            startDragOffset.y = getMousePos(evt).y - translatePos.y;
-        });
-
-        canvas.addEventListener("mouseup", function(evt){
-            mouseDown = false;
-        });
-
-        canvas.addEventListener("mouseover", function(evt){
-            mouseDown = false;
-        });
-
-        canvas.addEventListener("mouseout", function(evt){
-            mouseDown = false;
-        });
-
-        canvas.addEventListener("mousemove", function(evt){
-            if (mouseDown) {
-                translatePos.x = getMousePos(evt).x - startDragOffset.x;
-                translatePos.y = getMousePos(evt).y - startDragOffset.y;
-                draw();
-            }
-        });
-
         function DrawMap() {
             let f_width = canvas.width /N;
             let f_height = canvas.height /M;
@@ -290,7 +241,7 @@
                 for(let i = 0; i < N; i++) {
                     for (let j = 0; j < M; j++) {
                         context.fillStyle = 'rgb(150,150,150)';
-                        context.fillRect(i*f_width, O.y + j*f_height, f_width, f_height);
+                        context.fillRect(i*f_width, j*f_height, f_width, f_height);
 
                         let color;
                         if (disp_info.district[j][i] in district_colors){
@@ -395,31 +346,17 @@
         }
 
         function next_tick() {
-            if (curr_tick < max_tick-1) {
-                curr_tick++;
+            if (max_tick > 0){
+                curr_tick = mod(curr_tick+1, max_tick);
                 tick_label.innerHTML = curr_tick;
-
-                draw();
-            }
-            if (curr_tick+1 === max_tick) {
-                curr_tick = 0;
-                tick_label.innerHTML = curr_tick;
-
-                draw();
+                DrawMap();
             }
         }
 
         function prev_tick() {
-            if (curr_tick > 0) {
-                curr_tick--;
+            if (max_tick > 0) {
+                curr_tick = mod(curr_tick-1, max_tick);
                 tick_label.innerHTML = curr_tick;
-
-                DrawMap();
-            }
-            if (curr_tick === 0 && max_tick !== 0) {
-                curr_tick = max_tick-1;
-                tick_label.innerHTML = curr_tick;
-
                 DrawMap();
             }
         }
@@ -437,8 +374,7 @@
             let max_tick_label = document.getElementById("max_tick_label");
             max_tick_label.innerText = disp_info.max_tick;
             tick_label.innerHTML = curr_tick;
-
-            draw();
+            DrawMap();
         }
 
         function loadFile() {
@@ -462,10 +398,154 @@
             }
         }
 
+        function mod(n, m) {
+            return ((n % m) + m) % m;
+        }
+
+        let full_canvas_origin = {
+            x : 0,
+            y : 0
+        }
+
+        let origin = {
+            x : 0,
+            y : 0
+        }
+
+        var zoomIntensity = 0.2;
+        var scale = 1;
+
+        let startDragOffset = {};
+        let mouseDown = false;
+
+        canvas.addEventListener("mousedown", function(event){
+            mouseDown = true;
+            startDragOffset.x = event.clientX - origin.x;
+            startDragOffset.y = event.clientY - origin.y;
+        });
+
+        canvas.addEventListener("mouseup", function(event){
+            mouseDown = false;
+        });
+
+        canvas.addEventListener("mouseover", function(evt){
+            mouseDown = false;
+        });
+
+        canvas.addEventListener("mouseout", function(evt){
+            mouseDown = false;
+        });
+
+        canvas.addEventListener("mousemove", function(event){
+            if (mouseDown) {
+                if (scale > 1) {
+                    origin.x = event.clientX - startDragOffset.x;
+                    origin.y = event.clientY - startDragOffset.y;
+
+                    if(full_canvas_origin.x > 0) {
+                        origin.x = 0;
+                    }
+                    if (full_canvas_origin.x + canvas.width*scale < canvas.width) {
+                        origin.x = full_canvas_origin.x + canvas.width*scale - canvas.width;
+                    }
+                    if (full_canvas_origin.y > 0) {
+                        origin.y = 0;
+                    }
+                    if (full_canvas_origin.y + canvas.height*scale < canvas.height) {
+                        origin.y = full_canvas_origin.y + canvas.width*scale - canvas.height;
+                    }
+
+                    context.clearRect(0, 0, canvas.width, canvas.height);
+                    context.save();
+                    context.translate(origin.x, origin.y);
+                    context.scale(scale, scale);
+                    DrawMap();
+                    context.restore();
+                }
+            }
+        });
+
+        function zoom_function (event, wheel) {
+            let zoom = Math.exp(wheel*zoomIntensity);
+            scale *= zoom;
+
+            let mousePos = {
+                x : event.clientX,
+                y : event.clientY
+            }
+            context.translate(mousePos.x, mousePos.y); // clientX, clientY
+            origin.x = -mousePos.x;// -300; // -clientX
+            origin.y = -mousePos.y;// -100; // -clientY
+
+            full_canvas_origin.x += origin.x;
+            full_canvas_origin.y += origin.y;
+
+            context.scale(scale, scale); // a scale a full_canvas origójától terjed ki, és olyan mintha eltolná a pontokat magától
+            // a scale miatt az összes többi ponttól zoom-szoros távolságba kerül, ezt kell kivonni az origóból, hogy jó eredményt kapjunk az új origóra
+
+            full_canvas_origin.x *= zoom/scale; // megnöveljük a távolságot zoom-szorosra a ponttól, majd normáljuk a scale szerint
+            full_canvas_origin.y *= zoom/scale; // negatív, az új full canvas origó az egér pontból
+
+            origin.x /= scale; // negatív, a régi egér pozícióból számítva
+            origin.y /= scale;
+            origin.x = -full_canvas_origin.x + origin.x; // pozitív, az új full_canvas origótól számítva
+            origin.y = -full_canvas_origin.y + origin.y;
+
+            // ellenőrzöm, hogy full canvas lefedi e a canvast, ha nem, akkor eltolom a full canvast az originnak megfelelő koordba
+            if (full_canvas_origin.x > origin.x+full_canvas_origin.x || full_canvas_origin.x + canvas.width < origin.x+full_canvas_origin.x + canvas.width/scale) {
+                if (full_canvas_origin.x > origin.x+full_canvas_origin.x) {
+                    full_canvas_origin.x = origin.x+full_canvas_origin.x;
+                    origin.x = 0;
+                }
+                else {
+                    let diff = (origin.x+ full_canvas_origin.x + canvas.width/scale) - (full_canvas_origin.x + canvas.width);
+                    full_canvas_origin.x += diff;
+                    origin.x -= diff;
+                }
+
+            }
+            if (full_canvas_origin.y > origin.y+full_canvas_origin.y || full_canvas_origin.y + canvas.height < origin.y+full_canvas_origin.y + canvas.height/scale) {
+                if (full_canvas_origin.y > origin.y+full_canvas_origin.y) {
+                    full_canvas_origin.y = origin.y+full_canvas_origin.y;
+                    origin.y = 0;
+                }
+                else {
+                    let diff = (origin.y+ full_canvas_origin.y + canvas.height/scale) - (full_canvas_origin.y + canvas.height);
+                    full_canvas_origin.y += diff;
+                    origin.y -= diff;
+                }
+            }
+
+            context.translate(full_canvas_origin.x, full_canvas_origin.y);
+
+            context.clearRect(origin.x, origin.y, canvas.width, canvas.height);
+            DrawMap();
+
+            // visszaállítjuk az origót a látható terület sarkára, és elmentjük a full_canvas origóját a rendes méretével, majd reseteljük a scale-t
+            context.translate(origin.x, origin.y);
+            full_canvas_origin.x = -origin.x*scale;
+            full_canvas_origin.y = -origin.y*scale;
+            origin.x = 0;
+            origin.y = 0;
+            context.scale(1/scale, 1/scale);
+        }
+
+        canvas.onwheel = function (event){
+            var wheel = event.deltaY < 0 ? 1 : -1;
+
+            if (scale > 1) {
+                zoom_function(event, wheel);
+            } else {
+                if (wheel > 0) {
+                    zoom_function(event, wheel);
+                }
+            }
+        }
+
         function resizeCanvas() {
             canvas.width = canvas.clientWidth*2; // a szorzóval állítható a canvas felbontása
             canvas.height = canvas.width/1.8;
-            draw();
+            DrawMap();
         }
         // a <script> tag scopejában lévő függvényívások loopolva vannak
         resizeCanvas();
