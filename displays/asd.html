@@ -97,7 +97,6 @@
 
         function zoom_function (event, wheel) {
             let zoom = Math.exp(wheel*zoomIntensity);
-            zoom = 1.2;
             scale *= zoom;
 
             let mousePos = {
@@ -122,12 +121,35 @@
             origin.x = -full_canvas_origin.x + origin.x; // pozitív, az új full_canvas origótól számítva
             origin.y = -full_canvas_origin.y + origin.y;
 
+            // ellenőrzöm, hogy full canvas lefedi e a canvast, ha nem, akkor eltolom a full canvast az originnak megfelelő koordba
+            if (full_canvas_origin.x > origin.x+full_canvas_origin.x || full_canvas_origin.x + canvas.width < origin.x+full_canvas_origin.x + canvas.width/scale) {
+                if (full_canvas_origin.x > origin.x+full_canvas_origin.x) {
+                    full_canvas_origin.x = origin.x+full_canvas_origin.x;
+                    origin.x = 0;
+                }
+                else {
+                    let diff = (origin.x+ full_canvas_origin.x + canvas.width/scale) - (full_canvas_origin.x + canvas.width);
+                    full_canvas_origin.x += diff;
+                    origin.x -= diff;
+                }
+
+            }
+            if (full_canvas_origin.y > origin.y+full_canvas_origin.y || full_canvas_origin.y + canvas.height < origin.y+full_canvas_origin.y + canvas.height/scale) {
+                if (full_canvas_origin.y > origin.y+full_canvas_origin.y) {
+                    full_canvas_origin.y = origin.y+full_canvas_origin.y;
+                    origin.y = 0;
+                }
+                else {
+                    let diff = (origin.y+ full_canvas_origin.y + canvas.height/scale) - (full_canvas_origin.y + canvas.height);
+                    full_canvas_origin.y += diff;
+                    origin.y -= diff;
+                }
+            }
+
             context.translate(full_canvas_origin.x, full_canvas_origin.y);
 
             context.clearRect(origin.x, origin.y, canvas.width, canvas.height);
             draw();
-            context.fillStyle = "red";
-            context.fillRect(origin.x, origin.y, 10, 10);
 
             // visszaállítjuk az origót a látható terület sarkára, és elmentjük a full_canvas origóját a rendes méretével, majd reseteljük a scale-t
             context.translate(origin.x, origin.y);
@@ -136,57 +158,6 @@
             origin.x = 0;
             origin.y = 0;
             context.scale(1/scale, 1/scale);
-
-            // kiszámolom az új nagyított canvas koordinátáját
-
-            // // ellenőrzöm, hogy full canvas lefedi e a canvast, ha nem, akkor eltolom a full canvast az originnak megfelelő koordba
-            // if (scale > 1) {
-            //     if (full_canvas_origin.x > origin.x || full_canvas_origin.x + scale*canvas.width < origin.x + canvas.width) {
-            //         if (full_canvas_origin.x > origin.x) {
-            //             full_canvas_origin.x = origin.x;
-            //             console.log("asd1");
-            //         }
-            //         else {
-            //             full_canvas_origin.x = origin.x + canvas.width - scale*canvas.width;
-            //             console.log("asd2");
-            //         }
-            //
-            //     }
-            //
-            //     if (full_canvas_origin.y > origin.y || full_canvas_origin.y + scale*canvas.height < origin.y + canvas.height) {
-            //         if (full_canvas_origin.y > origin.y) {
-            //             full_canvas_origin.y = origin.y;
-            //             console.log("asd3");
-            //         }
-            //         else {
-            //             full_canvas_origin.y = origin.y + canvas.height - scale*canvas.height;
-            //             console.log("asd4");
-            //         }
-            //     }
-            // }
-            // else {
-            //     full_canvas_origin.x = origin.x;
-            //     full_canvas_origin.y = origin.y;
-            // }
-
-            // áthelyezem a koord rendszert a full canvas origójába, miután kiszámoltam, hogy az eredeti origó hogyan változik
-
-
-            // full_canvas_origin.x = 0;
-            // full_canvas_origin.y = 0;
-            // context.scale(zoom, zoom);
-            // origin.x = zoom*origin.x;
-            // origin.y = zoom*origin.y;
-            //
-            // // visszatérek az originba
-            // full_canvas_origin.x = -origin.x;
-            // full_canvas_origin.y = -origin.y;
-            // context.translate(origin.x, origin.y);
-            // origin.x = 0;
-            // origin.y = 0;
-            //
-            // context.fillRect(0,0, scale*canvas.width, scale*canvas.height);
-            // draw();
         }
 
         canvas.onwheel = function (event){
