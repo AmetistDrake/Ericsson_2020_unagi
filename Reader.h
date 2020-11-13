@@ -19,7 +19,7 @@ struct Area {
     unsigned int infectionRate;
     unsigned int healthRate;
     unsigned int population;
-    unsigned int vaccine;
+    unsigned int field_vaccine;
 };
 
 class Reader {

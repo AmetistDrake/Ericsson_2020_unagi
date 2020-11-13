@@ -24,27 +24,41 @@ vector<string> Solver::process(const vector<string> &infos) {
     }
     /********************************************/      /// Általános válasz:
 
-    vector<vector<vector<string>>> msg_tmp(reader.dimension[0],
-                                           vector<vector<string>>(reader.dimension[1], vector<string>()));
+    vector<vector<vector<string>>> msg_tmp(reader.dimension[0], vector<vector<string>>(reader.dimension[1], vector<string>()));
     msg_history.push_back(msg_tmp);
+    vector<vector<unsigned int>> tmp(reader.dimension[0], vector<unsigned int>(reader.dimension[1], 0));
 
-    // healing - fertőzöttek gyógyulása
-    vector<vector<unsigned int>> tmp(reader.dimension[0],
-                                     vector<unsigned int>(reader.dimension[1], 0));
+
     // 1) vakcina elhelyezés, csoportosítás
 
     vaccine_history.push_back(tmp);
+
     if (reader.data[1] == 0) {
-        vaccine_history.push_back(tmp);
-    }// legyen benne egy jövő, ami feltölthető a késleltetésekkel
+        set<int> num_of_dist;
+        for (size_t x = 0; x < reader.dimension[1]; x++) {
+            for (size_t y = 0; y < reader.dimension[0]; y++) {
+                num_of_dist.insert(reader.areas[y][x].district);
+            }
+        }
+        for (size_t i = 0; i < num_of_dist.size(); i++) {
+            set<pair<int, int>> temp;
+            keruletek.push_back(temp);
+            set<int> temp2;
+            szomszedsag.push_back(temp2);
+        }
+        district_areas();
+        vaccine_history.push_back(tmp); // legyen benne egy jövő, ami feltölthető a késleltetésekkel
+    }
     else {
         for (size_t x = 0; x < reader.dimension[1]; x++) {
             for (size_t y = 0; y < reader.dimension[0]; y++) {
-                vaccine_history[reader.data[1] - 1][y][x] = reader.areas[y][x].vaccine;
-                reader.areas[y][x].vaccine += vaccine_history[reader.data[1]][y][x];
+                vaccine_history[reader.data[1] - 1][y][x] = reader.areas[y][x].field_vaccine;
+                reader.areas[y][x].field_vaccine += vaccine_history[reader.data[1]][y][x];
             }
         }
     }
+
+    from_reserve(); // visszaad egy set<pair<int, int>> -et amiben a lehetséges területek vannak, ahova vakcinát lehet tenni
 
 
     // 2) healing - fertőzöttek gyógyulása
@@ -266,6 +280,7 @@ void Solver::vaccine_production() {
     }
 }
 
+//megtisztított területekről vissza a központba
 void Solver::cleaned_back() {
     unsigned int curr_tick = reader.data[1];
     int country_id = reader.data[2];
@@ -274,9 +289,9 @@ void Solver::cleaned_back() {
 
         for (std::size_t x = 0; x < reader.areas[y].size(); x++) {
             if (reader.countries[country_id].ASID.find(reader.areas[y][x].district)
-                != reader.countries[country_id].ASID.end() and reader.areas[y][x].vaccine != 0) {
+                != reader.countries[country_id].ASID.end() and reader.areas[y][x].field_vaccine != 0) {
                 Action temp{};
-                temp.val = reader.areas[y][x].vaccine;
+                temp.val = reader.areas[y][x].field_vaccine;
                 if (vaccine_history[curr_tick][y][x] > 0) { // késleltetettek
                     temp.val += vaccine_history[curr_tick + 1][y][x];
                     vaccine_history[curr_tick + 1][y][x] = 0;
@@ -291,23 +306,22 @@ void Solver::cleaned_back() {
 
 }
 
+//vissza a központba
 void Solver::back_to_reserve(const Solver::Action &temp) {
     int country_id = reader.data[2];
-    if (reader.areas[temp.y][temp.x].vaccine - temp.val >= 1) {
-        reader.areas[temp.y][temp.x].vaccine -= temp.val;
+    if (reader.areas[temp.y][temp.x].field_vaccine - temp.val >= 1) {
+        reader.areas[temp.y][temp.x].field_vaccine -= temp.val;
         reader.countries[country_id].RV += int(temp.val);
         BACK.push_back(temp);
     }
 
-
 }
 
-void Solver::district_areas(std::vector<std::vector<std::pair<int, int>>> &keruletek, vector<set<int>> &szomszedsag) {
-
-
+// nulladik tickben feltölti a kerületeket és a szomszédságokat
+void Solver::district_areas() {
     for (size_t x = 0; x < reader.dimension[1]; x++) {
         for (size_t y = 0; y < reader.dimension[0]; y++) {
-            keruletek[reader.areas[y][x].district].push_back({y, x});
+            keruletek[reader.areas[y][x].district].insert({y, x});
         }
     }
 
@@ -320,10 +334,33 @@ void Solver::district_areas(std::vector<std::vector<std::pair<int, int>>> &kerul
             for (auto nbs : neighbours) {
                 pair<int, int> c(y - nbs.first, x - nbs.second);
                 if ((0 <= c.first and c.first < reader.dimension[0] and 0 <= c.second and
-                     c.second < reader.dimension[1])) {
-                    if (reader.areas[c.first][c.second].district != reader.areas[y][x].district) {
-                        szomszedsag[reader.areas[y][x].district].insert(reader.areas[c.first][c.second].district);
+                     c.second < reader.dimension[1]) and
+                    reader.areas[c.first][c.second].district != reader.areas[y][x].district) {
+                    szomszedsag[reader.areas[y][x].district].insert(reader.areas[c.first][c.second].district);
 
+                }
+            }
+        }
+    }
+}
+
+//tiszta kerületeket összerakja MEG KELL NÉZNI? HOGY JÓ-e !!!!
+void Solver::DFS(std::vector<std::set<int>> &clear_szomszedsag) {
+    bool valtozas = true;
+    while (valtozas) {
+        valtozas = false;
+        for (size_t i = 0; i < szomszedsag.size(); i++) {
+            if (reader.safe_districts.find(i) != reader.safe_districts.end()) {
+                for (auto j : szomszedsag[i]) {
+                    if (reader.safe_districts.find(j) != reader.safe_districts.end()) {
+                        auto temp = clear_szomszedsag[i];
+                        clear_szomszedsag[i].insert(j);
+                        if (clear_szomszedsag[j].size() != 0) {
+                            for (auto k: clear_szomszedsag[j]) {
+                                clear_szomszedsag[i].insert(k);
+                            }
+                        }
+                        if (temp != clear_szomszedsag[i]) { valtozas = true; }
                     }
                 }
             }
@@ -332,90 +369,104 @@ void Solver::district_areas(std::vector<std::vector<std::pair<int, int>>> &kerul
 }
 
 
-void Solver::from_reserve() {
-    set<int> num_of_dist;
-    for (size_t x = 0; x < reader.dimension[1]; x++) {
-        for (size_t y = 0; y < reader.dimension[0]; y++) {
-            num_of_dist.insert(reader.areas[y][x].district);
+// kerületekellel élszomsédos területekeket kigyűjti, amik lehetséges vakcinahelyek
+void Solver::possibilities(std::set<std::pair<int, int>> &possible_choice, const std::set<int> &possible_districts,
+                           const std::vector<std::set<int>> &clear_szomszedsag) {
+    vector<std::pair<int, int>> neighbours{{-1, 0},
+                                           {0,  -1},
+                                           {1,  0},
+                                           {0,  1}};
+    set<int> pd;
+    for (auto dist: possible_districts) {
+        pd.insert(dist);
+        for (auto i : clear_szomszedsag[dist]) {
+            pd.insert(i);
         }
     }
-    vector<set<int>> szomszedsag(num_of_dist.size());
-    vector<set<int>> clear_szomszedsag(num_of_dist.size());
-    vector<vector<pair<int, int>>> keruletek(num_of_dist.size());
-    district_areas(keruletek, szomszedsag);
-    int country_id = reader.data[2];
-    set<pair<int, int>> possible;
-
-    for (size_t i = 0; i < szomszedsag.size(); i++) {
-        auto it_1 = reader.safe_districts.find(i);
-        if (it_1 != reader.safe_districts.end()) {
-            for (auto j : szomszedsag[i]) {
-                auto it_2 = reader.safe_districts.find(j);
-
+    for (auto i: pd) {
+        for (auto terulet: keruletek[i]) {
+            for (auto nbs : neighbours) {
+                int y = terulet.first - nbs.first;
+                int x = terulet.second - nbs.second;
+                if ((0 <= y and y < reader.dimension[0] and 0 <= x and x < reader.dimension[1]) and
+                    reader.safe_districts.find(reader.areas[y][x].district) == reader.safe_districts.end()) {
+                    possible_choice.insert({y, x});
+                }
             }
         }
     }
+    return;
+}
 
+// hova lehet tenni vakcinát?
+set<pair<int, int>> Solver::from_reserve() {
+    vector<std::pair<int, int>> neighbours{{-1, 0},
+                                           {0,  -1},
+                                           {1,  0},
+                                           {0,  1}};
+    vector<set<int>> clear_szomszedsag(szomszedsag.size());
+    set<pair<int, int>> possible;
+    set<pair<int, int>> possible_choice;
+    set<int> possible_districts;
+    DFS(clear_szomszedsag);
 
-    for (
-            size_t x = 0;
-            x < reader.dimension[1]; x++) {
-        for (
-                size_t y = 0;
-                y < reader.dimension[0]; y++) {
-            if (reader.areas[y][x].vaccine > 0) {
-                possible.insert({
-                                        y, x});
+    cout << "cleanek : " << endl;
+    for (auto i : clear_szomszedsag) {
+        for (auto j:i) {
+            cout << j << "  ";
+        }
+        cout << endl;
+    }
+// ellenőrzés, hogy van-e valahol vakcina
+    for (size_t x = 0; x < reader.dimension[1]; x++) {
+        for (size_t y = 0; y < reader.dimension[0]; y++) {
+            if (reader.areas[y][x].field_vaccine > 0) {
+                possible.insert({y, x});
             }
         }
     }
 // Ha nincs egy területen se tartalék vakcinája az országnak
-    if (possible.
-
-            empty()
-
-            ) {
-        set<pair<int, int>> possible_choice;
-        set<int> possible_district;
-        for (
-                size_t x = 0;
-                x < reader.dimension[1]; x++) {
-            for (
-                    size_t y = 0;
-                    y < reader.dimension[0]; y++) {
+    if (possible.empty()) {
+        for (size_t x = 0; x < reader.dimension[1]; x++) {
+            for (size_t y = 0; y < reader.dimension[0]; y++) {
                 if (x == 0 or y == 0 or x == reader.dimension[1] - 1 or y == reader.dimension[0] - 1) {
-                    if (reader.countries[country_id].ASID.
-                            find(reader
-                                         .areas[y][x].district)
-                        == reader.countries[country_id].ASID.
-
-                            end()
-
-                            ) {
-                        possible_district.
-                                insert(reader
-                                               .areas[y][x].district); // szélén nem tiszta kerületek
+                    if (reader.safe_districts.find(reader.areas[y][x].district) == reader.safe_districts.end()) {
+                        possible_choice.insert({y, x});
                     } else {
-                        for (auto i : szomszedsag[reader.areas[y][x].district]) {
-                            for (auto country : reader.countries) {
-                                if (country.second.ASID. find(i)    == country.second.ASID.
-
-                                        end()
-
-                                        ) {// ha a megtisztított egy nem megtisztítottal van kapcsolatban
-
-                                }
-                            }
-                        }
-
-//reader.countries[country_id].ASID.find(reader.areas[y][x].district)
-//!= reader.countries[country_id].ASID.end()
+                        possible_districts.insert(reader.areas[y][x].district);
                     }
+                }
+            }
+
+        }
+
+        possibilities(possible_choice, possible_districts, clear_szomszedsag);
+
+    }
+        //Ha van legalább egy területen tartalék vakcinája az országnak
+    else {
+        for (auto i: possible) {
+            possible_choice.insert(i); // akkor csak ezekre a területekre lehet tenni
+            for (auto nbs : neighbours) {
+                int _y = i.first - nbs.first;
+                int _x = i.second - nbs.second;
+                if ((0 <= _y and _y < reader.dimension[0] and 0 <= _x and _x < reader.dimension[1]) ){ //élszomszédos
+                    if( reader.safe_districts.find(reader.areas[_y][_x].district) == reader.safe_districts.end()) { // vagy a velük élszomszédos, és nem tiszta kerületű területre.
+                        possible_choice.insert({_y, _x});
+                    }
+                    //Ha van egy olyan terület, ahol van az országnak tartalék vakcinája, és az élszomszédos egy olyan területtel, amelynek kerülete tiszta, akkor azon tiszta kerület területeinek élszomszédos területei, amelyek nem tiszta kerülethez tartoznak, oda is tehető vakcina.
+                    else{
+                        possible_districts.insert(reader.areas[_y][_x].district);
+                    }
+
                 }
 
             }
+
         }
+        possibilities(possible_choice,possible_districts,clear_szomszedsag);
     }
+    return possible_choice;
 
 }
 

@@ -20,6 +20,8 @@ private:
     std::vector<std::vector<std::vector<unsigned int>>> healing_history;
     std::vector<std::vector<std::vector<unsigned int>>> vaccine_history;
     std::vector<std::vector<std::vector<std::vector<std::string>>>> msg_history;
+    std::vector<std::set<std::pair<int, int>>> keruletek;
+    std::vector<std::set<int>> szomszedsag;
 
     std::unordered_set<unsigned int> infected_districts;
     std::vector<Action> BACK;
@@ -33,9 +35,10 @@ private:
     void answer_msg(std::vector<std::string>&);
     void vaccine_production();
     void back_to_reserve(const Action &temp);
-    void from_reserve();
-    void district_areas(std::vector<std ::vector<std::pair<int, int >>>& keruletek, std::vector<std::set<int>> &szomszedsag);
-
+    std::set<std::pair<int, int>> from_reserve();
+    void district_areas();
+    void DFS(std::vector<std::set<int>> &clear_szomszedsag);
+    void possibilities(std::set<std::pair<int, int>> &possible_choice, const std::set<int> &possible_districts, const std::vector<std::set<int>> &clear_szomszedsag);
 public:
     Solver();
     ~Solver();
