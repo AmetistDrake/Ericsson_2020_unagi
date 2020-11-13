@@ -92,7 +92,31 @@
         }
 
         #btn_wrapper {
-            display: block;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-column-gap: 0;
+        }
+
+        #swap_btn_grid{
+            display: grid;
+            grid-template-columns: 1fr;
+            grid-gap: 1%;
+        }
+
+        .swap_btn {
+            float: right;
+            margin-left: 10px;
+            margin-top: 10px;
+            width: 50px;
+            height: 30px;
+        }
+
+        .jump_tick_btn {
+            margin-top: 10px;
+            margin-right: 10px;
+            float: left;
+            width: 70px;
+            height: 30px;
         }
 
         #infos_wrapper {
@@ -130,15 +154,6 @@
             flex-direction: column;
         }
 
-
-        .btn {
-            float: right;
-            margin-left: 10px;
-            margin-top: 10px;
-            width: 50px;
-            height: 30px;
-        }
-
         /* On Mobile */
         @media screen and (max-width: 50rem) {
             body {
@@ -165,8 +180,24 @@
                         <canvas id="canvas"></canvas>
                     </div>
                     <div id="btn_wrapper">
-                        <button class="btn" id="next_btn">></button>
-                        <button class="btn" id="prev_btn"><</button>
+                        <div>
+                            <button class="jump_tick_btn" id="first_tick_btn">First tick</button>
+                            <button class="jump_tick_btn" id="last_tick_btn">Last tick</button>
+                        </div>
+                        <div id="swap_btn_grid">
+                            <div>
+                                <button class="swap_btn" id="next_btn">></button>
+                                <button class="swap_btn" id="prev_btn"><</button>
+                            </div>
+                            <div>
+                                <button class="swap_btn" id="next_f_btn">>></button>
+                                <button class="swap_btn" id="prev_f_btn"><<</button>
+                            </div>
+                            <div>
+                                <button class="swap_btn" id="next_ff_btn">>>></button>
+                                <button class="swap_btn" id="prev_ff_btn"><<<</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div id="infos_wrapper">
@@ -210,13 +241,39 @@
         let tick_label = document.getElementById("tick_label");
         let next_btn = document.getElementById("next_btn");
         let prev_btn = document.getElementById("prev_btn");
+        let prev_f_btn = document.getElementById("prev_f_btn");
+        let next_f_btn = document.getElementById("next_f_btn");
+        let prev_ff_btn = document.getElementById("prev_ff_btn");
+        let next_ff_btn = document.getElementById("next_ff_btn");
+        let first_tick = document.getElementById("first_tick_btn");
+        let last_tick = document.getElementById("last_tick_btn");
 
         let curr_tick = 0;
         let max_tick = 0;
-        let N = 4;
-        let M = 4;
+        let N = 40;
+        let M = 40;
         let district_colors = {};
         let disp_info;
+
+        function mod(n, m) {
+            return ((n % m) + m) % m;
+        }
+
+        let full_canvas_origin = {
+            x : 0,
+            y : 0
+        }
+
+        let origin = {
+            x : 0,
+            y : 0
+        }
+
+        var zoomIntensity = 0.2;
+        var scale = 8;
+
+        let startDragOffset = {};
+        let mouseDown = false;
 
         function getMousePos(event) {
             let rect = canvas.getBoundingClientRect();
@@ -232,11 +289,9 @@
         function DrawMap() {
             let f_width = canvas.width /M;
             let f_height = canvas.height /N;
-            let divider = 6;
-            let text_divider = 10;
+            let divider = 4;
+            let text_divider = 4;
 
-            console.log(N);
-            console.log(M);
             // Háttér területek megrajzolása
             if (max_tick !== 0) {
                 for(let i = 0; i < N; i++) {
@@ -258,22 +313,21 @@
                         }
 
                         context.fillStyle ='rgba('+color.R+','+color.G+','+color.B+',0.5)';
-                        context.fillRect(i*f_width+1, j*f_height+1, f_width-2, f_height-2);
+                        context.fillRect(j*f_width+1, i*f_height+1, f_width-2, f_height-2);
                     }
                 }
 
                 for (let i = 0; i < N; i++) {
                     for (let j = 0; j < M; j++) {
                         let txt;
-                        let txt_offset = 10;
                         // Infection_rate
-                        context.font = String(f_width / text_divider) + "px Helvetica";
-
+                        context.font = String(f_width /2) + "px Helvetica";
                         let x = 255 - disp_info.infection_rate[curr_tick][j][i] * 255 / 100;
                         context.fillStyle = 'rgb(255,' + String(x) + ',' + String(x) + ')';
-                        context.align = "center";
                         txt = disp_info.infection_rate[curr_tick][j][i];
-                        context.fillText(txt, j*f_width+f_width / 2 - 2, i * f_height + f_height / 2 + 3);
+                        context.textBaseline = "middle";
+                        context.textAlign = "center";
+                        context.fillText(txt, j*f_width+f_width / 2, i * f_height + f_height / 2);
 
                         // Population
                         context.fillStyle = 'rgb(158,185,226)';
@@ -281,57 +335,61 @@
 
                         context.font = String(f_width / 2 / text_divider) + "px Helvetica";
                         context.fillStyle = "white";
-                        context.align = "center";
                         txt = disp_info.population[j][i];
-                        context.fillText(txt, j * f_width + f_width / divider / 2 - txt_offset, i * f_height + f_height / divider / 2 + txt_offset);
+                        context.textBaseline = "middle";
+                        context.textAlign = "center";
+                        context.fillText(txt, j * f_width + 1 + f_width / divider / 2, i * f_height + 1 + f_height / divider / 2);
 
                         // District
                         let color = district_colors[disp_info.district[j][i]];
                         context.fillStyle = 'rgba(' + color.R + ',' + color.G + ',' + color.B + ',0.5)';
-                        context.fillRect(j * f_width + 1, i * f_height + 1 + f_height / divider, f_width / divider, f_height / divider);
+                        context.fillRect(j * f_width + 1, i * f_height +1 + f_height / divider, f_width / divider, f_height / divider);
 
                         context.font = String(f_width / 2 / text_divider) + "px Helvetica";
                         context.fillStyle = "white";
-                        context.align = "center";
                         txt = disp_info.district[j][i];
-                        context.fillText(txt, j * f_width + f_width / divider / 2 - txt_offset, i * f_height + f_height / divider / 2 + txt_offset + f_height / divider);
+                        context.textBaseline = "middle";
+                        context.textAlign = "center";
+                        context.fillText(txt, j * f_width + 1 + f_width / divider / 2, i * f_height +1 + f_height / divider / 2  + f_height / divider);
 
                         // A healing és az inf el vannak tolódva, mindig azt az inf_rate-et látom, amivel változott azt előző állapot
                         if (curr_tick + 1 !== max_tick) {
                             // Infection
                             context.fillStyle = 'rgba(255, 255,255, 0.7)';
-                            context.fillRect(j*f_width+1+f_width-f_width/divider, i*f_height+1, f_width/divider, f_height/divider);
+                            context.fillRect(j*f_width-1+f_width-f_width/divider, i*f_height+1, f_width/divider, f_height/divider);
 
+                            txt = disp_info.infection[curr_tick + 1][j][i];
                             context.font = String(f_width / 2 / text_divider) + "px Helvetica";
                             context.fillStyle = "red";
-                            context.align = "center";
-                            txt = disp_info.infection[curr_tick + 1][j][i];
-                            context.fillText("+ "+txt, j*f_width+f_width/divider/2-txt_offset+f_width-f_width/divider, i*f_height+f_height/divider/2+txt_offset);
+                            context.textBaseline = "middle";
+                            context.textAlign = "center";
+                            context.fillText("+"+txt, j*f_width -1 +f_width/divider/2+f_width-f_width/divider, i*f_height+1 +f_height/divider/2);
 
                             // Healing
                             context.fillStyle = 'rgba(255, 255,255, 0.7)';
-                            context.fillRect(j * f_width + 1 + f_width - f_width / divider, i * f_height + 1 + f_height / divider, f_width / divider, f_height / divider);
+                            context.fillRect(j * f_width -1 + f_width - f_width / divider, i * f_height +1 + f_height / divider, f_width / divider, f_height / divider);
 
+                            txt = disp_info.healing[curr_tick + 1][j][i];
                             context.font = String(f_width / 2 / text_divider) + "px Helvetica";
                             context.fillStyle = "green";
-                            context.align = "center";
-                            txt = disp_info.healing[curr_tick + 1][j][i];
-                            context.fillText("- " + txt, j * f_width + f_width / divider / 2 - txt_offset + f_width - f_width / divider, i * f_height + f_height / divider / 2 + txt_offset + f_height / divider);
+                            context.textBaseline = "middle";
+                            context.textAlign = "center";
+                            context.fillText("-" + txt, j * f_width -1 +f_width / divider / 2 + f_width - f_width / divider, i * f_height +1 + f_height / divider / 2 + f_height / divider);
                         }
 
                         // Health rate
                         context.fillStyle = 'rgba(0,0,0, 0.4)';
-                        context.fillRect(j * f_width + 1 + 0 * f_width / divider, i * f_height + 1 + f_height - f_height / divider, f_width / divider, f_height / divider);
+                        context.fillRect(j * f_width +1 + 0 * f_width / divider, i * f_height -1 + f_height - f_height / divider, f_width / divider, f_height / divider);
 
+                        txt = disp_info.health_rate[curr_tick][j][i];
                         context.font = String(f_width / 2 / text_divider) + "px Helvetica";
                         context.fillStyle = "white";
-                        context.align = "center";
-                        txt = disp_info.health_rate[curr_tick][j][i];
-                        let extra_txt_offset = 20;
-                        context.fillText("HR: " + txt, j * f_width + f_width / divider / 2 - txt_offset - extra_txt_offset, i * f_height + f_height / divider / 2 + txt_offset + f_height - f_height / divider);
-
+                        context.textBaseline = "middle";
+                        context.textAlign = "center";
+                        context.fillText(txt, j * f_width +1 + f_width / divider / 2, i * f_height -1 + f_height / divider / 2 + f_height - f_height / divider);
                     }
                 }
+
             }
             else {
                 for(let i = 0; i < N; i++) {
@@ -343,22 +401,6 @@
                         context.fillRect(j*f_width+1, i*f_height+1, f_width-2, f_height-2);
                     }
                 }
-            }
-        }
-
-        function next_tick() {
-            if (max_tick > 0){
-                curr_tick = mod(curr_tick+1, max_tick);
-                tick_label.innerHTML = curr_tick;
-                DrawMap();
-            }
-        }
-
-        function prev_tick() {
-            if (max_tick > 0) {
-                curr_tick = mod(curr_tick-1, max_tick);
-                tick_label.innerHTML = curr_tick;
-                DrawMap();
             }
         }
 
@@ -375,7 +417,7 @@
             let max_tick_label = document.getElementById("max_tick_label");
             max_tick_label.innerText = disp_info.max_tick;
             tick_label.innerHTML = curr_tick;
-            DrawMap();
+            DrawScaledMap();
         }
 
         function loadFile() {
@@ -399,25 +441,6 @@
             }
         }
 
-        function mod(n, m) {
-            return ((n % m) + m) % m;
-        }
-
-        let full_canvas_origin = {
-            x : 0,
-            y : 0
-        }
-
-        let origin = {
-            x : 0,
-            y : 0
-        }
-
-        var zoomIntensity = 0.2;
-        var scale = 1;
-
-        let startDragOffset = {};
-        let mouseDown = false;
 
         canvas.addEventListener("mousedown", function(event){
             mouseDown = true;
@@ -469,6 +492,9 @@
         function zoom_function (event, wheel) {
             let zoom = Math.exp(wheel*zoomIntensity);
             scale *= zoom;
+            if (scale < 1) {
+                scale = 1;
+            }
 
             let mousePos = {
                 x : getMousePos(event).x,
@@ -543,17 +569,98 @@
             }
         }
 
+        function DrawScaledMap() {
+            origin.x = 0;
+            origin.y = 0;
+            full_canvas_origin.x = 0;
+            full_canvas_origin.y = 0;
+            context.translate(0, 0);
+            context.scale(scale, scale);
+            DrawMap();
+            context.scale(1/scale, 1/scale);
+        }
+
+        function next1_tick (){
+            if (max_tick > 0){
+                curr_tick = mod(curr_tick+1, max_tick);
+                tick_label.innerHTML = curr_tick;
+                DrawScaledMap();
+            }
+        }
+
+        function prev1_tick() {
+            if (max_tick > 0) {
+                curr_tick = mod(curr_tick-1, max_tick);
+                tick_label.innerHTML = curr_tick;
+                DrawScaledMap();
+            }
+        }
+
+        function next10_tick (){
+            if (max_tick > 0){
+                curr_tick = mod(curr_tick+10, max_tick);
+                tick_label.innerHTML = curr_tick;
+                DrawScaledMap();
+            }
+        }
+
+        function prev10_tick() {
+            if (max_tick > 0) {
+                curr_tick = mod(curr_tick-10, max_tick);
+                tick_label.innerHTML = curr_tick;
+                DrawScaledMap();
+            }
+        }
+
+        function next100_tick (){
+            if (max_tick > 0){
+                curr_tick = mod(curr_tick+100, max_tick);
+                tick_label.innerHTML = curr_tick;
+                DrawScaledMap();
+            }
+        }
+
+        function prev100_tick() {
+            if (max_tick > 0) {
+                curr_tick = mod(curr_tick-100, max_tick);
+                tick_label.innerHTML = curr_tick;
+                DrawScaledMap();
+            }
+        }
+
+        function last_tick_jump() {
+            if (max_tick > 0) {
+                curr_tick = max_tick-1;
+                tick_label.innerHTML = curr_tick;
+                DrawScaledMap();
+            }
+        }
+
+        function first_tick_jump() {
+            if (max_tick > 0) {
+                curr_tick = 0;
+                tick_label.innerHTML = curr_tick;
+                DrawScaledMap();
+            }
+        }
+
         function resizeCanvas() {
             canvas.width = canvas.clientWidth*2; // a szorzóval állítható a canvas felbontása
             canvas.height = canvas.width/1.8;
-            DrawMap();
+            DrawScaledMap();
         }
         // a <script> tag scopejában lévő függvényívások loopolva vannak
         resizeCanvas();
         // Event handler to resize the canvas when the document view is changed
         fileinput.onchange = loadFile;
-        next_btn.addEventListener("click", next_tick);
-        prev_btn.addEventListener("click", prev_tick);
+        next_btn.addEventListener("click", next1_tick);
+        prev_btn.addEventListener("click", prev1_tick);
+        prev_f_btn.addEventListener("click", prev10_tick);
+        next_f_btn.addEventListener("click", next10_tick);
+        prev_ff_btn.addEventListener("click", prev100_tick);
+        next_ff_btn.addEventListener("click", next100_tick);
+        first_tick.addEventListener("click", first_tick_jump);
+        last_tick.addEventListener("click", last_tick_jump);
         window.addEventListener('resize', resizeCanvas, false);
     </script>
 </body>
