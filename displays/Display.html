@@ -230,17 +230,19 @@
         }
 
         function DrawMap() {
-            let f_width = canvas.width /N;
-            let f_height = canvas.height /M;
+            let f_width = canvas.width /M;
+            let f_height = canvas.height /N;
             let divider = 6;
             let text_divider = 10;
 
+            console.log(N);
+            console.log(M);
             // Háttér területek megrajzolása
             if (max_tick !== 0) {
                 for(let i = 0; i < N; i++) {
                     for (let j = 0; j < M; j++) {
                         context.fillStyle = 'rgb(150,150,150)';
-                        context.fillRect(i*f_width, j*f_height, f_width, f_height);
+                        context.fillRect(j*f_width, i*f_height, f_width, f_height);
 
                         let color;
                         if (disp_info.district[j][i] in district_colors){
@@ -271,62 +273,62 @@
                         context.fillStyle = 'rgb(255,' + String(x) + ',' + String(x) + ')';
                         context.align = "center";
                         txt = disp_info.infection_rate[curr_tick][j][i];
-                        context.fillText(txt, i*f_width+f_width / 2 - 2, j * f_height + f_height / 2 + 3);
+                        context.fillText(txt, j*f_width+f_width / 2 - 2, i * f_height + f_height / 2 + 3);
 
                         // Population
                         context.fillStyle = 'rgb(158,185,226)';
-                        context.fillRect(i * f_width + 1, j * f_height + 1, f_width / divider, f_height / divider);
+                        context.fillRect(j * f_width + 1, i * f_height + 1, f_width / divider, f_height / divider);
 
                         context.font = String(f_width / 2 / text_divider) + "px Helvetica";
                         context.fillStyle = "white";
                         context.align = "center";
                         txt = disp_info.population[j][i];
-                        context.fillText(txt, i * f_width + f_width / divider / 2 - txt_offset, j * f_height + f_height / divider / 2 + txt_offset);
+                        context.fillText(txt, j * f_width + f_width / divider / 2 - txt_offset, i * f_height + f_height / divider / 2 + txt_offset);
 
                         // District
                         let color = district_colors[disp_info.district[j][i]];
                         context.fillStyle = 'rgba(' + color.R + ',' + color.G + ',' + color.B + ',0.5)';
-                        context.fillRect(i * f_width + 1, j * f_height + 1 + f_height / divider, f_width / divider, f_height / divider);
+                        context.fillRect(j * f_width + 1, i * f_height + 1 + f_height / divider, f_width / divider, f_height / divider);
 
                         context.font = String(f_width / 2 / text_divider) + "px Helvetica";
                         context.fillStyle = "white";
                         context.align = "center";
                         txt = disp_info.district[j][i];
-                        context.fillText(txt, i * f_width + f_width / divider / 2 - txt_offset, j * f_height + f_height / divider / 2 + txt_offset + f_height / divider);
+                        context.fillText(txt, j * f_width + f_width / divider / 2 - txt_offset, i * f_height + f_height / divider / 2 + txt_offset + f_height / divider);
 
                         // A healing és az inf el vannak tolódva, mindig azt az inf_rate-et látom, amivel változott azt előző állapot
                         if (curr_tick + 1 !== max_tick) {
                             // Infection
                             context.fillStyle = 'rgba(255, 255,255, 0.7)';
-                            context.fillRect(i*f_width+1+f_width-f_width/divider, j*f_height+1, f_width/divider, f_height/divider);
+                            context.fillRect(j*f_width+1+f_width-f_width/divider, i*f_height+1, f_width/divider, f_height/divider);
 
                             context.font = String(f_width / 2 / text_divider) + "px Helvetica";
                             context.fillStyle = "red";
                             context.align = "center";
                             txt = disp_info.infection[curr_tick + 1][j][i];
-                            context.fillText("+ "+txt, i*f_width+f_width/divider/2-txt_offset+f_width-f_width/divider, j*f_height+f_height/divider/2+txt_offset);
+                            context.fillText("+ "+txt, j*f_width+f_width/divider/2-txt_offset+f_width-f_width/divider, i*f_height+f_height/divider/2+txt_offset);
 
                             // Healing
                             context.fillStyle = 'rgba(255, 255,255, 0.7)';
-                            context.fillRect(i * f_width + 1 + f_width - f_width / divider, j * f_height + 1 + f_height / divider, f_width / divider, f_height / divider);
+                            context.fillRect(j * f_width + 1 + f_width - f_width / divider, i * f_height + 1 + f_height / divider, f_width / divider, f_height / divider);
 
                             context.font = String(f_width / 2 / text_divider) + "px Helvetica";
                             context.fillStyle = "green";
                             context.align = "center";
                             txt = disp_info.healing[curr_tick + 1][j][i];
-                            context.fillText("- " + txt, i * f_width + f_width / divider / 2 - txt_offset + f_width - f_width / divider, j * f_height + f_height / divider / 2 + txt_offset + f_height / divider);
+                            context.fillText("- " + txt, j * f_width + f_width / divider / 2 - txt_offset + f_width - f_width / divider, i * f_height + f_height / divider / 2 + txt_offset + f_height / divider);
                         }
 
                         // Health rate
                         context.fillStyle = 'rgba(0,0,0, 0.4)';
-                        context.fillRect(i * f_width + 1 + 0 * f_width / divider, j * f_height + 1 + f_height - f_height / divider, f_width / divider, f_height / divider);
+                        context.fillRect(j * f_width + 1 + 0 * f_width / divider, i * f_height + 1 + f_height - f_height / divider, f_width / divider, f_height / divider);
 
                         context.font = String(f_width / 2 / text_divider) + "px Helvetica";
                         context.fillStyle = "white";
                         context.align = "center";
                         txt = disp_info.health_rate[curr_tick][j][i];
                         let extra_txt_offset = 20;
-                        context.fillText("HR: " + txt, i * f_width + f_width / divider / 2 - txt_offset - extra_txt_offset, j * f_height + f_height / divider / 2 + txt_offset + f_height - f_height / divider);
+                        context.fillText("HR: " + txt, j * f_width + f_width / divider / 2 - txt_offset - extra_txt_offset, i * f_height + f_height / divider / 2 + txt_offset + f_height - f_height / divider);
 
                     }
                 }
@@ -335,10 +337,10 @@
                 for(let i = 0; i < N; i++) {
                     for (let j = 0; j < M; j++) {
                         context.fillStyle = 'rgba(150,150,150,1)';
-                        context.fillRect(i*f_width, j*f_height, f_width, f_height);
+                        context.fillRect(j*f_width, i*f_height, f_width, f_height);
 
                         context.fillStyle = 'rgba(255,255,255,0.5)';
-                        context.fillRect(i*f_width+1, j*f_height+1, f_width-2, f_height-2);
+                        context.fillRect(j*f_width+1, i*f_height+1, f_width-2, f_height-2);
                     }
                 }
             }
