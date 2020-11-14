@@ -64,33 +64,39 @@ vector<string> Solver::process(const vector<string>& infos) {
     for (size_t x = 0; x < reader.dimension[1]; x++) { // oszlop és sorfolytonos indexelés, ez fontos, mert számít hogy a faktorok melyik iterációban frissülnek
         for (size_t y = 0; y < reader.dimension[0]; y++) {
             if (reader.areas[y][x].infectionRate > 0 && (y + x < reader.data[1])) {
-                unsigned int h = healing(y,x); //ha nincs vakcina
+                unsigned int h = healing(y,x); //ha nincs vakcina alapból ennyi a healing
 
                 ///******************* MÁSODIK FORDULÓ *****************///
                 unsigned int IR = infection_rate_history[reader.data[1] - 1][y][x]; //prev InfectionRate
                 unsigned int P = reader.areas[y][x].population; //start_info
 
                 unsigned int n = 0; //összes ország tartalék vakcinái
+                ///A KÖVI 3 SORT KI KELL KOMMENTELNI, HA VAKCINÁZNI AKARUNK!!!
                 /*for (const auto &a : reader.countries) {
                    n += a.second.RV;
                 }*/
+
                 unsigned int X = min(n * P, IR); //ennyivel csökken az infection és nő a healthRate vakcinázás után
-                int m = ceil(X / P); //ennyivel csökken a tartalék vakcinaszám (összesen?), tbh nem teljesen vilagos, hogy ez pontosan micsoda
-                //std::cout << "ennyivel fog csokkeni a tartalek vakcinaszam (osszesen?): " << m << '\n';
+                int m = ceil(X / P); //ennyivel csökken a tartalék vakcinaszám az adott területen?? összesen??
+                //std::cout << "ennyivel fog csokkeni a tartalek vakcinaszam: " << m << '\n';
+
                 ///vakcina miatti gyógyulás
                 if (IR > 0 && n > 0) { //ha előző körben volt fertőzött és vakcina is van -> oltsa be
                     //std::cout<< "Van " << n << "db vakcina osszesen. ";
+                    vaccinated_history[reader.data[1]][y][x] = X; // vakcina által mennyi gyógyulás volt a területen
                     reader.areas[y][x].healthRate += X;
                     reader.areas[y][x].infectionRate -= X;
                    ///tartalék vakcinaszám csökkentése
+                   //adott területen is kéne m vakcinával csökkenteni a területi vakcinaszámot???
                    for (auto a : reader.countries) {
                        a.second.RV = floor(a.second.RV * (n - m) / n);
                        //std::cout<< "A vakcinak szama ennyi a csokkenes utan: " << floor(a.second.RV * (n - m) / n) <<'\n';
                   }
                    h = floor(healing(y, x) * (IR - X) / IR); //ha van vakcina módosul a visszatérési érték
+                }else{
+                    vaccinated_history[reader.data[1]][y][x] = 0; //ha nem vakcináztunk
                 }
                 ///******************* MÁSODIK FORDULÓ *****************///
-                //healing folyamat
                 healing_history[reader.data[1]][y][x] = h;
                 reader.areas[y][x].healthRate += h;
                 reader.areas[y][x].infectionRate -= h;
