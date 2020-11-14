@@ -7,7 +7,13 @@
 #include <unordered_set>
 #include <fstream>
 #include <filesystem>
-# include <set>
+
+struct pair_hash {
+  inline std::size_t operator()(const std::pair<int,int> & v) const {
+    return v.first*31+v.second;
+  }
+};
+
 class Solver {
 private:
     Reader reader;
@@ -20,9 +26,9 @@ private:
     std::vector<std::vector<std::vector<unsigned int>>> infection_rate_history;
     std::vector<std::vector<std::vector<unsigned int>>> health_rate_history;
     std::vector<std::vector<std::vector<unsigned int>>> vaccine_history;
-    std::vector<std::vector<std::vector<std::vector<std::string>>>> msg_history;
-    std::vector<std::set<std::pair<int, int>>> keruletek;
-    std::vector<std::set<int>> szomszedsag;
+    std::vector<std::vector<std::string>> msg_history;
+    std::vector<std::unordered_set<std::pair<int, int>, pair_hash>> keruletek;
+    std::vector<std::unordered_set<int>> szomszedsag;
 
     std::unordered_set<unsigned int> infected_districts;
     std::vector<Action> BACK;
@@ -36,10 +42,10 @@ private:
     void answer_msg(std::vector<std::string>&);
     void vaccine_production();
     void back_to_reserve(const Action &temp);
-    std::set<std::pair<int, int>> from_reserve();
+    std::unordered_set<std::pair<int, int>,pair_hash> from_reserve();
     void district_areas();
-    void DFS(std::vector<std::set<int>> &clear_szomszedsag);
-    void possibilities(std::set<std::pair<int, int>> &possible_choice, const std::set<int> &possible_districts, const std::vector<std::set<int>> &clear_szomszedsag);
+    void DFS(std::vector<std::unordered_set<int>> &clear_szomszedsag);
+    void possibilities(std::unordered_set<std::pair<int, int>,pair_hash> &possible_choice, const std::unordered_set<int> &possible_districts, const std::vector<std::unordered_set<int>> &clear_szomszedsag);
 public:
     Solver();
     ~Solver();

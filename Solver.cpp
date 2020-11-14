@@ -13,7 +13,7 @@ vector<string> Solver::process(const vector<string>& infos) {
     } else {                                            // amikor hálózaton keresztül kommunikál a program
         reader.readDataInfo(infos);
     }
-    /********************************************/      /// Speciális esetek, amikor véget ée a program, vagy ha nem kell válasz
+    /********************************************/      /// Speciális eunordered_setek, amikor véget ée a program, vagy ha nem kell válasz
     if (reader.hasEnd) {
         return vector<string>{"Game over"};             // a main.cpp-ben megszakad a while loop és véget ér a program
     }
@@ -22,27 +22,23 @@ vector<string> Solver::process(const vector<string>& infos) {
         return vector<string>{};
     }
     /********************************************/      /// Általános válasz:
-
-    vector<vector<vector<string>>> msg_tmp (reader.dimension[0], vector<vector<string>>(reader.dimension[1], vector<string>()));
-    msg_history.push_back(msg_tmp);
+    
     vector<vector<unsigned int>> tmp(reader.dimension[0], vector<unsigned int>(reader.dimension[1], 0));
 
-
     // 1) vakcina elhelyezés, csoportosítás
-
     vaccine_history.push_back(tmp);
 
     if (reader.data[1] == 0) {
-        set<int> num_of_dist;
+        unordered_set<int> num_of_dist;
         for (size_t x = 0; x < reader.dimension[1]; x++) {
             for (size_t y = 0; y < reader.dimension[0]; y++) {
                 num_of_dist.insert(reader.areas[y][x].district);
             }
         }
         for (size_t i = 0; i < num_of_dist.size(); i++) {
-            set<pair<int, int>> temp;
+            unordered_set<pair<int, int>, pair_hash> temp;
             keruletek.push_back(temp);
-            set<int> temp2;
+            unordered_set<int> temp2;
             szomszedsag.push_back(temp2);
         }
         district_areas();
@@ -57,7 +53,7 @@ vector<string> Solver::process(const vector<string>& infos) {
         }
     }
 
-    from_reserve(); // visszaad egy set<pair<int, int>> -et amiben a lehetséges területek vannak, ahova vakcinát lehet tenni
+    from_reserve(); // visszaad egy unordered_set<pair<int, int>> -et amiben a lehetséges területek vannak, ahova vakcinát lehet tenni
 
 
     // 2) healing - fertőzöttek gyógyulása
@@ -142,6 +138,7 @@ vector<string> Solver::process(const vector<string>& infos) {
     // Válasz
     vector<string> commands;
     answer_msg(commands); // readerből beletölti a megfelelő infokat
+    msg_history.push_back(commands);
     return commands; // küldés vagy kiiratás
 }
 
@@ -357,7 +354,7 @@ void Solver::district_areas() {
 }
 
 //tiszta kerületeket összerakja MEG KELL NÉZNI? HOGY JÓ-e !!!!
-void Solver::DFS(std::vector<std::set<int>> &clear_szomszedsag) {
+void Solver::DFS(std::vector<std::unordered_set<int>> &clear_szomszedsag) {
     bool valtozas = true;
     while (valtozas) {
         valtozas = false;
@@ -367,7 +364,7 @@ void Solver::DFS(std::vector<std::set<int>> &clear_szomszedsag) {
                     if (reader.safe_districts.find(j) != reader.safe_districts.end()) {
                         auto temp = clear_szomszedsag[i];
                         clear_szomszedsag[i].insert(j);
-                        if (clear_szomszedsag[j].size() != 0) {
+                        if (!clear_szomszedsag[j].empty()) {
                             for (auto k: clear_szomszedsag[j]) {
                                 clear_szomszedsag[i].insert(k);
                             }
@@ -382,13 +379,13 @@ void Solver::DFS(std::vector<std::set<int>> &clear_szomszedsag) {
 
 
 // kerületekellel élszomsédos területekeket kigyűjti, amik lehetséges vakcinahelyek
-void Solver::possibilities(std::set<std::pair<int, int>> &possible_choice, const std::set<int> &possible_districts,
-                           const std::vector<std::set<int>> &clear_szomszedsag) {
+void Solver::possibilities(std::unordered_set<std::pair<int, int>,pair_hash> &possible_choice, const std::unordered_set<int> &possible_districts,
+                           const std::vector<std::unordered_set<int>> &clear_szomszedsag) {
     vector<std::pair<int, int>> neighbours{{-1, 0},
                                            {0,  -1},
                                            {1,  0},
                                            {0,  1}};
-    set<int> pd;
+    unordered_set<int> pd;
     for (auto dist: possible_districts) {
         pd.insert(dist);
         for (auto i : clear_szomszedsag[dist]) {
@@ -407,19 +404,18 @@ void Solver::possibilities(std::set<std::pair<int, int>> &possible_choice, const
             }
         }
     }
-    return;
 }
 
 // hova lehet tenni vakcinát?
-set<pair<int, int>> Solver::from_reserve() {
+unordered_set<pair<int, int>, pair_hash> Solver::from_reserve() {
     vector<std::pair<int, int>> neighbours{{-1, 0},
                                            {0,  -1},
                                            {1,  0},
                                            {0,  1}};
-    vector<set<int>> clear_szomszedsag(szomszedsag.size());
-    set<pair<int, int>> possible;
-    set<pair<int, int>> possible_choice;
-    set<int> possible_districts;
+    vector<unordered_set<int>> clear_szomszedsag(szomszedsag.size());
+    unordered_set<pair<int, int>, pair_hash> possible;
+    unordered_set<pair<int, int>, pair_hash> possible_choice;
+    unordered_set<int> possible_districts;
     DFS(clear_szomszedsag);
 
 
@@ -473,7 +469,6 @@ set<pair<int, int>> Solver::from_reserve() {
         possibilities(possible_choice,possible_districts,clear_szomszedsag);
     }
     return possible_choice;
-
 }
 
 
@@ -515,6 +510,7 @@ void Solver::answer_msg(vector<std::string> &commands) {
 
     commands.emplace_back(".");
 }
+
 
 
 
