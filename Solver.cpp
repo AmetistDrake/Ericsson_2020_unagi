@@ -24,10 +24,11 @@ vector<string> Solver::process(const vector<string>& infos) {
     /********************************************/      /// Általános válasz:
 
     vector<vector<unsigned int>> tmp(reader.dimension[0], vector<unsigned int>(reader.dimension[1], 0));
-
+    vector<unordered_set<int>> clean_temp;
 
     // 1) vakcina elhelyezés, csoportosítás
     field_vaccine_history.push_back(tmp);
+    clean_nbs_history.push_back(clean_temp);
 
     if (reader.data[1] == 0) {
         unordered_set<int> num_of_dist;
@@ -385,6 +386,24 @@ void Solver::DFS(std::vector<std::unordered_set<int>> &clear_szomszedsag) {
             }
         }
     }
+    vector<unordered_set<int>> temp;
+    for(size_t item = 0; item < clear_szomszedsag.size(); item ++ ){
+       unordered_set<int> t;
+       t.insert(item);
+       for(auto szomszed: clear_szomszedsag[item]){
+           t.insert(szomszed);
+       }
+       temp.push_back(t);
+    }
+    for(auto item=0; item < temp.size(); item ++){
+        for(auto belso_item = item+1; belso_item < temp.size(); belso_item++){
+            if(temp[belso_item].count(*temp[item].begin()) >0){
+                temp.erase(temp.begin()+belso_item-1);
+            }
+        }
+    }
+    clean_nbs_history[reader.data[1]]=temp;
+
 }
 
 
