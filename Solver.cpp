@@ -107,7 +107,6 @@ vector<string> Solver::process(const vector<string>& infos) {
         }
     }
     // 3) megtisztítottról visszekerül az országraktárba
-    update_infected_districts();
     cleaned_back();
 
 
@@ -120,7 +119,7 @@ vector<string> Solver::process(const vector<string>& infos) {
                     infection_history[0][y][x] = 1;
                 }
             } else if (reader.safe_districts.find(reader.areas[y][x].district) ==
-                       reader.safe_districts.end()) { // ha a terület kerületében van még fertőzött
+                    reader.safe_districts.end()) { // ha tiszta kerületek között nincs, akkor van infection
                 unsigned int inf = infection(y, x);
                 if ((inf + reader.areas[y][x].healthRate + reader.areas[y][x].infectionRate) > 100) {
                     inf = 100 - reader.areas[y][x].healthRate - reader.areas[y][x].infectionRate;
@@ -132,7 +131,6 @@ vector<string> Solver::process(const vector<string>& infos) {
         }
     }
 
-    update_infected_districts();
 
     // 5) vakcinagyártás
     vaccine_production();
@@ -498,13 +496,12 @@ unordered_set<pair<int, int>, pair_hash> Solver::from_reserve() {
             for (auto nbs : neighbours) {
                 int _y = i.first - nbs.first;
                 int _x = i.second - nbs.second;
-                if ((0 <= _y and _y < reader.dimension[0] and 0 <= _x and _x < reader.dimension[1])) { //élszomszédos
-                    if (reader.safe_districts.find(reader.areas[_y][_x].district) ==
-                        reader.safe_districts.end()) { // vagy a velük élszomszédos, és nem tiszta kerületű területre.
+                if ((0 <= _y and _y < reader.dimension[0] and 0 <= _x and _x < reader.dimension[1]) ){ //élszomszédos
+                    if( reader.safe_districts.find(reader.areas[_y][_x].district) == reader.safe_districts.end()) { // vagy a velük élszomszédos, és nem tiszta kerületű területre.
                         possible_choice.insert({_y, _x});
                     }
-                        //Ha van egy olyan terület, ahol van az országnak tartalék vakcinája, és az élszomszédos egy olyan területtel, amelynek kerülete tiszta, akkor azon tiszta kerület területeinek élszomszédos területei, amelyek nem tiszta kerülethez tartoznak, oda is tehető vakcina.
-                    else {
+                    //Ha van egy olyan terület, ahol van az országnak tartalék vakcinája, és az élszomszédos egy olyan területtel, amelynek kerülete tiszta, akkor azon tiszta kerület területeinek élszomszédos területei, amelyek nem tiszta kerülethez tartoznak, oda is tehető vakcina.
+                    else{
                         possible_districts.insert(reader.areas[_y][_x].district);
                     }
 
@@ -513,7 +510,7 @@ unordered_set<pair<int, int>, pair_hash> Solver::from_reserve() {
             }
 
         }
-        possibilities(possible_choice, possible_districts, clear_szomszedsag);
+        possibilities(possible_choice,possible_districts,clear_szomszedsag);
     }
     return possible_choice;
 }
