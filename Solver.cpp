@@ -6,6 +6,7 @@
 
 using namespace std;
 
+
 vector<string> Solver::process(const vector<string>& infos) {
     /********************************************/      /// A tesztelés a beadott verziótól itt különül el
     if (infos.size() == 1 && infos[0] == "unagi") {     // amikor a consolon keresztül kommunikál a program
