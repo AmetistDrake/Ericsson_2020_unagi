@@ -31,6 +31,7 @@ private:
     std::vector<std::vector<std::string>> msg_history; // a kiírt válaszunk körönként
     std::vector<int> TPC_history;
     std::vector<int> RV_history;
+    int TPC_0;
 
 
     std::vector<std::unordered_set<std::pair<int, int>, pair_hash>> keruletek;
