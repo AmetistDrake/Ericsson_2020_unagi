@@ -36,14 +36,12 @@ private:
     std::vector<std::unordered_set<std::pair<int, int>, pair_hash>> keruletek;
     std::vector<std::unordered_set<int>> szomszedsag;
 
-    std::unordered_set<unsigned int> infected_districts;
     std::vector<Action> BACK;
     std::vector<Action> PUT;
 
     unsigned int healing(unsigned int y, unsigned int x);
     unsigned int infection(unsigned int y, unsigned int x);
     static void update_factor(uint32_t&);
-    void update_infected_districts();
     void cleaned_back(); // 3mas pont a második fordulóban
     void answer_msg(std::vector<std::string>&);
     void vaccine_production();

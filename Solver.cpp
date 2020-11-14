@@ -98,7 +98,6 @@ vector<string> Solver::process(const vector<string>& infos) {
         }
     }
     // 3) megtisztítottról visszekerül az országraktárba
-    update_infected_districts();
     cleaned_back();
 
 
@@ -110,8 +109,8 @@ vector<string> Solver::process(const vector<string>& infos) {
                 if (reader.areas[y][x].infectionRate > 0) {
                     infection_history[0][y][x] = 1;
                 }
-            } else if (infected_districts.find(reader.areas[y][x].district) !=
-                       infected_districts.end()) { // ha a terület kerületében van még fertőzött
+            } else if (reader.safe_districts.find(reader.areas[y][x].district) ==
+                       reader.safe_districts.end()) { // ha a terület kerületében van még fertőzött
                 unsigned int inf = infection(y, x);
                 if ((inf + reader.areas[y][x].healthRate + reader.areas[y][x].infectionRate) > 100) {
                     inf = 100 - reader.areas[y][x].healthRate - reader.areas[y][x].infectionRate;
@@ -122,8 +121,6 @@ vector<string> Solver::process(const vector<string>& infos) {
             }
         }
     }
-
-    update_infected_districts();
 
     // 5) vakcinagyártás
     vaccine_production();
