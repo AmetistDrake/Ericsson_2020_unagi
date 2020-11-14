@@ -39,8 +39,8 @@ vector<string> Solver::process(const vector<string>& infos) {
                 }
             }
         }
-        district_count++;
-        for (size_t i = 0; i < district_count; i++) {
+
+        for (size_t i = 0; i <= district_count; i++) {
             unordered_set<pair<int, int>, pair_hash> temp;
             keruletek.push_back(temp);
             unordered_set<int> temp2;
