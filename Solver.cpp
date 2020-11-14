@@ -6,7 +6,6 @@
 
 using namespace std;
 
-
 vector<string> Solver::process(const vector<string>& infos) {
     /********************************************/      /// A tesztelés a beadott verziótól itt különül el
     if (infos.size() == 1 && infos[0] == "unagi") {     // amikor a consolon keresztül kommunikál a program
@@ -49,8 +48,8 @@ vector<string> Solver::process(const vector<string>& infos) {
         }
         district_areas();
         field_vaccine_history.push_back(tmp); // legyen benne egy jövő, ami feltölthető a késleltetésekkel
-    }
-    else {
+        TPC_0 = reader.countries[reader.data[2]].TPC;
+    } else {
         for (size_t x = 0; x < reader.dimension[1]; x++) {
             for (size_t y = 0; y < reader.dimension[0]; y++) {
                 field_vaccine_history[reader.data[1] - 1][y][x] = reader.areas[y][x].field_vaccine;
@@ -273,10 +272,10 @@ void Solver::vaccine_production() {
                                            {1,  0},
                                            {0,  1}};
 
-    for (auto clean: reader.countries[country_id].ASID) {
+    for (auto clean: reader.safe_districts) {
         for (size_t y = 0; y < reader.areas.size(); y++) {
             for (std::size_t x = 0; x < reader.areas[y].size(); x++) {
-                if (reader.areas[y][x].district == clean) {
+                if (reader.areas[y][x].district == clean.first) {
                     for (auto nbs : neighbours) {
                         pair<int, int> c(y - nbs.first, x - nbs.second);
                         if ((0 <= c.first and c.first < reader.dimension[0] and
@@ -294,25 +293,22 @@ void Solver::vaccine_production() {
         }
     }
     int value = 2 * sum_of_areas - ceil(minus_val / 3);
-    if (value < 0) {
+    if (value < (0-TPC_0)) {
         value = 0;
     }
-    reader.countries[country_id].TPC = value;
-    for (auto c: reader.countries) {
-        c.second.RV += c.second.TPC;
-    }
+    reader.countries[country_id].TPC = TPC_0 +value;
+    reader.countries[country_id].RV += value;
 }
 
 //megtisztított területekről vissza a központba
 void Solver::cleaned_back() {
     unsigned int curr_tick = reader.data[1];
-    int country_id = reader.data[2];
+    //int country_id = reader.data[2];
 
     for (size_t y = 0; y < reader.areas.size(); y++) {
-
-        for (std::size_t x = 0; x < reader.areas[y].size(); x++) {
-            if (reader.countries[country_id].ASID.find(reader.areas[y][x].district)
-                != reader.countries[country_id].ASID.end() and reader.areas[y][x].field_vaccine != 0) {
+        for (size_t x = 0; x < reader.areas[y].size(); x++) {
+            if (reader.safe_districts.find(reader.areas[y][x].district)
+                != reader.safe_districts.end() and reader.areas[y][x].field_vaccine != 0) {
                 Action temp{};
                 temp.val = reader.areas[y][x].field_vaccine;
                 if (field_vaccine_history[curr_tick][y][x] > 0) { // késleltetettek
@@ -340,10 +336,11 @@ void Solver::back(const Solver::Action &temp) {
 
 void Solver::put(const Solver::Action &temp) {
     int country_id = reader.data[2];
+    if(reader.countries[country_id].RV >= int(temp.val) ){
         reader.areas[temp.y][temp.x].field_vaccine += temp.val;
         reader.countries[country_id].RV -= int(temp.val);
         PUT.push_back(temp);
-
+    }
 }
 
 // nulladik tickben feltölti a kerületeket és a szomszédságokat
@@ -374,6 +371,9 @@ void Solver::district_areas() {
 
 //tiszta kerületeket összerakja MEG KELL NÉZNI? HOGY JÓ-e !!!!
 void Solver::DFS(std::vector<std::unordered_set<int>> &clear_szomszedsag) {
+    if(reader.safe_districts.empty()){
+        return;
+    }
     bool valtozas = true;
     while (valtozas) {
         valtozas = false;
@@ -399,7 +399,7 @@ void Solver::DFS(std::vector<std::unordered_set<int>> &clear_szomszedsag) {
 
     vector<unordered_set<int>> temp;
     for(size_t item = 0; item < clear_szomszedsag.size(); item ++ ){
-        if(clear_szomszedsag[item].size() !=0){
+        if(!clear_szomszedsag[item].empty()){
        unordered_set<int> t;
        t.insert(item);
        for(auto szomszed: clear_szomszedsag[item]){
@@ -422,7 +422,8 @@ void Solver::DFS(std::vector<std::unordered_set<int>> &clear_szomszedsag) {
 
 
 // kerületekellel élszomsédos területekeket kigyűjti, amik lehetséges vakcinahelyek
-void Solver::possibilities(std::unordered_set<std::pair<int, int>,pair_hash> &possible_choice, const std::unordered_set<int> &possible_districts,
+void Solver::possibilities(std::unordered_set<std::pair<int, int>, pair_hash> &possible_choice,
+                           const std::unordered_set<int> &possible_districts,
                            const std::vector<std::unordered_set<int>> &clear_szomszedsag) {
     vector<std::pair<int, int>> neighbours{{-1, 0},
                                            {0,  -1},
