@@ -26,7 +26,7 @@ vector<string> Solver::process(const vector<string>& infos) {
     vector<vector<unsigned int>> tmp(reader.dimension[0], vector<unsigned int>(reader.dimension[1], 0));
 
     // 1) vakcina elhelyezés, csoportosítás
-    vaccine_history.push_back(tmp);
+    field_vaccine_history.push_back(tmp);
 
     if (reader.data[1] == 0) {
         unordered_set<int> num_of_dist;
@@ -42,13 +42,13 @@ vector<string> Solver::process(const vector<string>& infos) {
             szomszedsag.push_back(temp2);
         }
         district_areas();
-        vaccine_history.push_back(tmp); // legyen benne egy jövő, ami feltölthető a késleltetésekkel
+        field_vaccine_history.push_back(tmp); // legyen benne egy jövő, ami feltölthető a késleltetésekkel
     }
     else {
         for (size_t x = 0; x < reader.dimension[1]; x++) {
             for (size_t y = 0; y < reader.dimension[0]; y++) {
-                vaccine_history[reader.data[1] - 1][y][x] = reader.areas[y][x].field_vaccine;
-                reader.areas[y][x].field_vaccine += vaccine_history[reader.data[1]][y][x];
+                field_vaccine_history[reader.data[1] - 1][y][x] = reader.areas[y][x].field_vaccine;
+                reader.areas[y][x].field_vaccine += field_vaccine_history[reader.data[1]][y][x];
             }
         }
     }
@@ -58,6 +58,7 @@ vector<string> Solver::process(const vector<string>& infos) {
 
     // 2) healing - fertőzöttek gyógyulása
     healing_history.push_back(tmp);
+    vaccinated_history.push_back(tmp);
     for (size_t x = 0; x < reader.dimension[1]; x++) { // oszlop és sorfolytonos indexelés, ez fontos, mert számít hogy a faktorok melyik iterációban frissülnek
         for (size_t y = 0; y < reader.dimension[0]; y++) {
             if (reader.areas[y][x].infectionRate > 0 && (y + x < reader.data[1])) {
@@ -125,7 +126,7 @@ vector<string> Solver::process(const vector<string>& infos) {
     // 5) vakcinagyártás
     vaccine_production();
 
-    // inf_rate és health_rate history-k feltöltése
+    // history-k feltöltése
     health_rate_history.push_back(tmp);
     infection_rate_history.push_back(tmp);
     for (size_t x = 0; x < reader.dimension[1]; x++) {
@@ -134,6 +135,9 @@ vector<string> Solver::process(const vector<string>& infos) {
             infection_rate_history[reader.data[1]][y][x] = reader.areas[y][x].infectionRate;
         }
     }
+
+    RV_history.push_back(reader.countries[0].RV);
+    TPC_history.push_back(reader.countries[0].TPC);
 
     // Válasz
     vector<string> commands;
@@ -301,9 +305,9 @@ void Solver::cleaned_back() {
                 != reader.countries[country_id].ASID.end() and reader.areas[y][x].field_vaccine != 0) {
                 Action temp{};
                 temp.val = reader.areas[y][x].field_vaccine;
-                if (vaccine_history[curr_tick][y][x] > 0) { // késleltetettek
-                    temp.val += vaccine_history[curr_tick + 1][y][x];
-                    vaccine_history[curr_tick + 1][y][x] = 0;
+                if (field_vaccine_history[curr_tick][y][x] > 0) { // késleltetettek
+                    temp.val += field_vaccine_history[curr_tick + 1][y][x];
+                    field_vaccine_history[curr_tick + 1][y][x] = 0;
                 }
                 temp.x = x;
                 temp.y = y;

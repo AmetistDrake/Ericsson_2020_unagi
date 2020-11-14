@@ -22,11 +22,16 @@ private:
     };
 
     std::vector<std::vector<std::vector<unsigned int>>> infection_history;
-    std::vector<std::vector<std::vector<unsigned int>>> healing_history;
+    std::vector<std::vector<std::vector<unsigned int>>> healing_history; // magától mennyi gyógyulás volt a területen
     std::vector<std::vector<std::vector<unsigned int>>> infection_rate_history;
     std::vector<std::vector<std::vector<unsigned int>>> health_rate_history;
-    std::vector<std::vector<std::vector<unsigned int>>> vaccine_history;
-    std::vector<std::vector<std::string>> msg_history;
+    std::vector<std::vector<std::vector<unsigned int>>> vaccinated_history;  // vakcina által mennyi gyógyulás volt a területen
+    std::vector<std::vector<std::vector<unsigned int>>> field_vaccine_history;  // vakcina által mennyi gyógyulás volt a területen
+    std::vector<std::vector<std::string>> msg_history; // a kiírt válaszunk körönként
+    std::vector<int> TPC_history;
+    std::vector<int> RV_history;
+
+
     std::vector<std::unordered_set<std::pair<int, int>, pair_hash>> keruletek;
     std::vector<std::unordered_set<int>> szomszedsag;
 

@@ -105,7 +105,27 @@ void Solver::create_json_from_data() {
     kf << "\t\"num_of_countries\" : " << to_string(reader.countries_count) <<",\n";
     kf << "\t\"country_id\" : " << to_string(reader.data[2]) <<",\n";
     kf << "\t\"max_tick\" : " << to_string(reader.max_tick) <<",\n";
+    kf << "\t\"RV\" : [";
+    for (size_t i = 0; i < RV_history.size(); i++) {
+      if (i == RV_history.size()-1) {
+        kf << to_string(RV_history[i]);
+      }
+      else {
+        kf << to_string(RV_history[i]) << ", ";
+      }
+    }
+    kf << "],\n";
 
+    kf << "\t\"TPC\" : [";
+    for (size_t i = 0; i < TPC_history.size(); i++) {
+      if (i == TPC_history.size()-1) {
+        kf << to_string(TPC_history[i]);
+      }
+      else {
+        kf << to_string(TPC_history[i]) << ", ";
+      }
+    }
+    kf << "],\n";
 
     write_json_vv(kf, reader, "population");
     write_json_vv(kf, reader, "district");
@@ -114,34 +134,21 @@ void Solver::create_json_from_data() {
     write_json_vvv(kf, health_rate_history, "health_rate");
     write_json_vvv(kf, infection_history, "infection");
     write_json_vvv(kf, healing_history, "healing");
-    write_json_vvv(kf, vaccine_history, "vaccines");
+    write_json_vvv(kf, vaccinated_history, "vaccinated");
+    write_json_vvv(kf, field_vaccine_history, "field_vaccine");
 
     kf << "\t\"messages\" : [";
     for (size_t i = 0; i < msg_history.size(); i++) {
         kf << "[";
         for(size_t j = 0; j < msg_history[i].size(); j++) {
-            kf << "[";
-            for (size_t k = 0; k < msg_history[i][j].size(); k++) {
-                kf << "[";
-                for (size_t l = 0; l < msg_history[i][j][k].size(); l++) {
-                    if (k == msg_history[i][j].size()-1) {
-                        kf << "\"" << msg_history[i][j][k][l] << "\"";
-                    }
-                    else {
-                        kf << "\"" << msg_history[i][j][k][l] << "\"" << ", ";
-                    }
-                }
-                if (k == msg_history[i][j].size()-1) {
-                    kf << "]";
-                }else {
-                    kf << "], ";
-                }
-
+            if (j == 0) {
+              kf << "\"" << msg_history[i][j] << "<br/>";
             }
-            if (j == msg_history[i].size()-1) {
-                kf << "]";
-            }else {
-                kf << "], ";
+            else if (j == msg_history[i].size()-1) {
+                kf << msg_history[i][j] << "\"";
+            }
+            else {
+                kf << msg_history[i][j] << "\\n";
             }
         }
         if (i == msg_history.size()-1) {

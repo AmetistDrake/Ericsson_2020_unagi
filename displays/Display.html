@@ -143,13 +143,13 @@
         }
 
         #label_titles {
-            flex: 0.8;
+            flex: 0.5;
             display: flex;
             flex-direction: column;
         }
 
         #label_values {
-            flex: 0.2;
+            flex: 0.5;
             display: flex;
             flex-direction: column;
         }
@@ -218,12 +218,20 @@
                                 <label>Country ID: </label>
                                 <label>Max tick: </label>
                                 <label>Current tick: </label>
+                                <label></label>
+                                <label>TPC: </label>
+                                <label>RV: </label>
+                                <label>Sent messages: </label>
                             </div>
                             <div id="label_values">
                                 <label id="num_of_countries"></label>
                                 <label id="country_id"></label>
                                 <label id="max_tick_label"></label>
                                 <label id="tick_label"></label>
+                                <label></label>
+                                <label id="TPC"></label>
+                                <label id="RV"></label>
+                                <label id="msg"></label>
                             </div>
                         </div>
                     </div>
@@ -239,6 +247,10 @@
         let canvas = document.getElementById("canvas"),
             context = canvas.getContext("2d");
         let tick_label = document.getElementById("tick_label");
+        let max_tick_label = document.getElementById("max_tick_label");
+        let TPC_label = document.getElementById("TPC");
+        let RV_label = document.getElementById("RV");
+        let msg_label = document.getElementById("msg");
         let next_btn = document.getElementById("next_btn");
         let prev_btn = document.getElementById("prev_btn");
         let prev_f_btn = document.getElementById("prev_f_btn");
@@ -320,14 +332,15 @@
                 for (let i = 0; i < N; i++) {
                     for (let j = 0; j < M; j++) {
                         let txt;
-                        // Infection_rate
-                        context.font = String(f_width /2) + "px Helvetica";
-                        let x = 255 - disp_info.infection_rate[curr_tick][j][i] * 255 / 100;
-                        context.fillStyle = 'rgb(255,' + String(x) + ',' + String(x) + ')';
-                        txt = disp_info.infection_rate[curr_tick][j][i];
-                        context.textBaseline = "middle";
-                        context.textAlign = "center";
-                        context.fillText(txt, j*f_width+f_width / 2, i * f_height + f_height / 2);
+                        // Field vaccine
+                        if (disp_info.field_vaccine[j][i] > 0) {
+                            context.font = String(f_width /2) + "px Helvetica";
+                            context.fillStyle = "white";
+                            txt = disp_info.infection_rate[curr_tick][j][i];
+                            context.textBaseline = "middle";
+                            context.textAlign = "center";
+                            context.fillText(txt, j*f_width+f_width / 2, i * f_height + f_height / 2);
+                        }
 
                         // Population
                         context.fillStyle = 'rgb(158,185,226)';
@@ -375,51 +388,64 @@
                             context.textBaseline = "middle";
                             context.textAlign = "center";
                             context.fillText("-" + txt, j * f_width -1 +(f_width-2) / divider / 2 + f_width - (f_width-2) / divider, i * f_height +1 + (f_height-2) / divider / 2 + (f_height-2) / divider);
+
+                            // Vaccinated
+                            context.fillStyle = 'rgba(255, 255,255, 0.7)';
+                            context.fillRect(j * f_width -1 + f_width - (f_width-2) / divider, i * f_height +1 + 2*(f_height-2) / divider, (f_width-2) / divider, (f_height-2) / divider);
+
+                            txt = disp_info.vaccinated[curr_tick + 1][j][i];
+                            context.font = String(f_width / 2 / text_divider) + "px Helvetica";
+                            context.fillStyle = "green";
+                            context.textBaseline = "middle";
+                            context.textAlign = "center";
+                            context.fillText("-" + txt, j * f_width -1 +(f_width-2) / divider / 2 + f_width - (f_width-2) / divider, i * f_height +1 + (f_height-2) / divider / 2 + 2* (f_height-2) / divider);
                         }
 
-                        // Health rate
+                        // Infection rate
                         context.fillStyle = 'rgba(0,0,0, 0.4)';
-                        context.fillRect(j * f_width +1 + 0 * (f_width-2) / divider, i * f_height -1 + f_height - (f_height-2) / divider, (f_width-2) / divider, (f_height-2) / divider);
+                        context.fillRect(j * f_width +1, i * f_height -1 + f_height - (f_height-2) / divider, (f_width-2) / divider, (f_height-2) / divider);
 
-                        txt = disp_info.health_rate[curr_tick][j][i];
+                        txt = disp_info.infection_rate[curr_tick][j][i];
                         context.font = String(f_width / 2 / text_divider) + "px Helvetica";
-                        context.fillStyle = "white";
+                        let x = 255 - disp_info.infection_rate[curr_tick][j][i] * 255 / 100;
+                        context.fillStyle = 'rgb(255,' + String(x) + ',' + String(x) + ')';
                         context.textBaseline = "middle";
                         context.textAlign = "center";
                         context.fillText(txt, j * f_width +1 + (f_width-2) / divider / 2, i * f_height -1 + (f_height-2) / divider / 2 + f_height - (f_height-2) / divider);
 
-                        // Placeholder
+                        // Infection rate
                         context.fillStyle = 'rgba(0,0,0, 0.4)';
-                        context.fillRect(j * f_width +1 + 1 * (f_width-2) / divider, i * f_height -1 + f_height - (f_height-2) / divider, (f_width-2) / divider, (f_height-2) / divider);
+                        context.fillRect(j * f_width +1 + (f_width-2) / divider, i * f_height -1 + f_height - (f_height-2) / divider, (f_width-2) / divider, (f_height-2) / divider);
 
                         txt = disp_info.health_rate[curr_tick][j][i];
                         context.font = String(f_width / 2 / text_divider) + "px Helvetica";
-                        context.fillStyle = "white";
+                        x = 255 - disp_info.health_rate[curr_tick][j][i] * 255 / 100;
+                        context.fillStyle = 'rgb('+ String(x) + ',' + String(x) + ',255)';
                         context.textBaseline = "middle";
                         context.textAlign = "center";
-                        context.fillText(txt, j * f_width +1 + (f_width-2) / divider / 2, i * f_height -1 + (f_height-2) / divider / 2 + f_height - (f_height-2) / divider);
+                        context.fillText(txt, j * f_width +1 + (f_width-2) / divider + (f_width-2) / divider / 2, i * f_height -1 + (f_height-2) / divider / 2 + f_height - (f_height-2) / divider);
 
                         // Placeholder
                         context.fillStyle = 'rgba(0,0,0, 0.4)';
                         context.fillRect(j * f_width +1 + 2 * (f_width-2) / divider, i * f_height -1 + f_height - (f_height-2) / divider, (f_width-2) / divider, (f_height-2) / divider);
 
-                        txt = disp_info.health_rate[curr_tick][j][i];
+                        txt = "";
                         context.font = String(f_width / 2 / text_divider) + "px Helvetica";
                         context.fillStyle = "white";
                         context.textBaseline = "middle";
                         context.textAlign = "center";
-                        context.fillText(txt, j * f_width +1 + (f_width-2) / divider / 2, i * f_height -1 + (f_height-2) / divider / 2 + f_height - (f_height-2) / divider);
+                        context.fillText(txt, j * f_width +1 + 2*(f_width-2) / divider + (f_width-2) / divider / 2, i * f_height -1 + (f_height-2) / divider / 2 + f_height - (f_height-2) / divider);
 
                         // Placeholder
                         context.fillStyle = 'rgba(0,0,0, 0.4)';
                         context.fillRect(j * f_width +1 + 3 * (f_width-2) / divider, i * f_height -1 + f_height - (f_height-2) / divider, (f_width-2) / divider, (f_height-2) / divider);
 
-                        txt = disp_info.health_rate[curr_tick][j][i];
+                        txt = "";
                         context.font = String(f_width / 2 / text_divider) + "px Helvetica";
                         context.fillStyle = "white";
                         context.textBaseline = "middle";
                         context.textAlign = "center";
-                        context.fillText(txt, j * f_width +1 + (f_width-2) / divider / 2, i * f_height -1 + (f_height-2) / divider / 2 + f_height - (f_height-2) / divider);
+                        context.fillText(txt, j * f_width +1 + 3*(f_width-2) / divider + (f_width-2) / divider / 2, i * f_height -1 + (f_height-2) / divider / 2 + f_height - (f_height-2) / divider);
                     }
                 }
 
@@ -447,9 +473,7 @@
             num_of_countries.innerHTML = disp_info.num_of_countries;
             let country_id = document.getElementById("country_id");
             country_id.innerHTML = disp_info.country_id;
-            let max_tick_label = document.getElementById("max_tick_label");
-            max_tick_label.innerText = disp_info.max_tick;
-            tick_label.innerHTML = String(curr_tick);
+            refreshDispInfo();
             DrawScaledMap();
         }
 
@@ -481,7 +505,7 @@
             startDragOffset.y = event.clientY - origin.y;
         });
 
-        canvas.addEventListener("mouseup", function(event){
+        canvas.addEventListener("mouseup", function(){
             full_canvas_origin.x = origin.x;
             full_canvas_origin.y = origin.y;
             origin.x = 0;
@@ -489,11 +513,11 @@
             mouseDown = false;
         });
 
-        canvas.addEventListener("mouseover", function(event){
+        canvas.addEventListener("mouseover", function(){
             mouseDown = false;
         });
 
-        canvas.addEventListener("mouseout", function(event){
+        canvas.addEventListener("mouseout", function(){
             mouseDown = false;
         });
 
@@ -618,10 +642,18 @@
             context.scale(1/scale, 1/scale);
         }
 
+        function refreshDispInfo (){
+            max_tick_label.innerText = disp_info.max_tick;
+            tick_label.innerHTML = curr_tick;
+            TPC_label.innerHTML = disp_info.TPC[curr_tick];
+            RV_label.innerHTML = disp_info.RV[curr_tick];
+            msg_label.innerHTML = disp_info.messages[curr_tick];
+        }
+
         function next1_tick (){
             if (max_tick > 0){
                 curr_tick = mod(curr_tick+1, max_tick);
-                tick_label.innerHTML = curr_tick;
+                refreshDispInfo();
                 DrawScaledMap();
             }
         }
@@ -629,7 +661,7 @@
         function prev1_tick() {
             if (max_tick > 0) {
                 curr_tick = mod(curr_tick-1, max_tick);
-                tick_label.innerHTML = curr_tick;
+                refreshDispInfo();
                 DrawScaledMap();
             }
         }
@@ -637,7 +669,7 @@
         function next10_tick (){
             if (max_tick > 0){
                 curr_tick = mod(curr_tick+10, max_tick);
-                tick_label.innerHTML = curr_tick;
+                refreshDispInfo();
                 DrawScaledMap();
             }
         }
@@ -645,7 +677,7 @@
         function prev10_tick() {
             if (max_tick > 0) {
                 curr_tick = mod(curr_tick-10, max_tick);
-                tick_label.innerHTML = curr_tick;
+                refreshDispInfo();
                 DrawScaledMap();
             }
         }
@@ -653,7 +685,7 @@
         function next100_tick (){
             if (max_tick > 0){
                 curr_tick = mod(curr_tick+100, max_tick);
-                tick_label.innerHTML = curr_tick;
+                refreshDispInfo();
                 DrawScaledMap();
             }
         }
@@ -661,7 +693,7 @@
         function prev100_tick() {
             if (max_tick > 0) {
                 curr_tick = mod(curr_tick-100, max_tick);
-                tick_label.innerHTML = curr_tick;
+                refreshDispInfo();
                 DrawScaledMap();
             }
         }
@@ -669,7 +701,7 @@
         function last_tick_jump() {
             if (max_tick > 0) {
                 curr_tick = max_tick-1;
-                tick_label.innerHTML = String(curr_tick);
+                refreshDispInfo();
                 DrawScaledMap();
             }
         }
@@ -677,7 +709,7 @@
         function first_tick_jump() {
             if (max_tick > 0) {
                 curr_tick = 0;
-                tick_label.innerHTML = String(curr_tick);
+                refreshDispInfo();
                 DrawScaledMap();
             }
         }
