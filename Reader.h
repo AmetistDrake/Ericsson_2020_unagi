@@ -36,7 +36,7 @@ public:
     bool hasEnd = false;
     bool needAnsw = true;
 
-    std::unordered_map<unsigned int, unsigned int> safe_districts; // kulcs a district, val ország ID // a solveres set emiatt valszeg majd nem kell
+    std::unordered_map<unsigned int, unsigned int> safe_districts; // key a district, val ország ID
     std::unordered_map<int, Country> countries;
     std::vector<std::vector<int>> sum_of_previous_vaccine_on_areas;
     std::vector<std::vector<int>> vaccinated;
