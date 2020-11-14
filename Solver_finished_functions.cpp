@@ -142,14 +142,12 @@ void Solver::create_json_from_data() {
           }
           else {
             int num2 = 0;
-            num2++;
-            if (num2 != keruletek[distr].size()){
-              for (auto coord : keruletek[distr]) { // terület
+            for (auto coord : keruletek[distr]) { // terület
+              num2++;
+              if (num2 != keruletek[distr].size()) {
                 kf << "[" << to_string(coord.first) + ", " << to_string(coord.second) << "], ";
               }
-            }
-            else {
-              for (auto coord : keruletek[distr]) { // terület
+              else {
                 kf << "[" << to_string(coord.first) + ", " << to_string(coord.second) << "]";
               }
             }
