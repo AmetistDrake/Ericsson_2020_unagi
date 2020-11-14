@@ -46,8 +46,9 @@ private:
     void cleaned_back(); // 3mas pont a második fordulóban
     void answer_msg(std::vector<std::string>&);
     void vaccine_production();
-    void back_to_reserve(const Action &temp);
-    std::unordered_set<std::pair<int, int>,pair_hash> from_reserve();
+    void back(const Action &temp);
+    void put(const Action &temp);
+    std::unordered_set<std::pair<int, int>> from_reserve();
     void district_areas();
     void DFS(std::vector<std::unordered_set<int>> &clear_szomszedsag);
     void possibilities(std::unordered_set<std::pair<int, int>,pair_hash> &possible_choice, const std::unordered_set<int> &possible_districts, const std::vector<std::unordered_set<int>> &clear_szomszedsag);

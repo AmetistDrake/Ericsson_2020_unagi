@@ -13,7 +13,7 @@ vector<string> Solver::process(const vector<string>& infos) {
     } else {                                            // amikor hálózaton keresztül kommunikál a program
         reader.readDataInfo(infos);
     }
-    /********************************************/      /// Speciális eunordered_setek, amikor véget ée a program, vagy ha nem kell válasz
+    /********************************************/      /// Speciális esetek, amikor véget és a program, vagy ha nem kell válasz
     if (reader.hasEnd) {
         return vector<string>{"Game over"};             // a main.cpp-ben megszakad a while loop és véget ér a program
     }
@@ -22,8 +22,9 @@ vector<string> Solver::process(const vector<string>& infos) {
         return vector<string>{};
     }
     /********************************************/      /// Általános válasz:
-    
+
     vector<vector<unsigned int>> tmp(reader.dimension[0], vector<unsigned int>(reader.dimension[1], 0));
+
 
     // 1) vakcina elhelyezés, csoportosítás
     field_vaccine_history.push_back(tmp);
@@ -53,7 +54,7 @@ vector<string> Solver::process(const vector<string>& infos) {
         }
     }
 
-    from_reserve(); // visszaad egy unordered_set<pair<int, int>> -et amiben a lehetséges területek vannak, ahova vakcinát lehet tenni
+    from_reserve(); // visszaad egy unordered_set<pair<int, int>, pair_hasher> -et amiben a lehetséges területek vannak, ahova vakcinát lehet tenni
 
 
     // 2) healing - fertőzöttek gyógyulása
@@ -311,7 +312,7 @@ void Solver::cleaned_back() {
                 }
                 temp.x = x;
                 temp.y = y;
-                back_to_reserve(temp);
+                back(temp);
 
             }
         }
@@ -320,13 +321,21 @@ void Solver::cleaned_back() {
 }
 
 //vissza a központba
-void Solver::back_to_reserve(const Solver::Action &temp) {
+void Solver::back(const Solver::Action &temp) {
     int country_id = reader.data[2];
     if (reader.areas[temp.y][temp.x].field_vaccine - temp.val >= 1) {
         reader.areas[temp.y][temp.x].field_vaccine -= temp.val;
         reader.countries[country_id].RV += int(temp.val);
         BACK.push_back(temp);
     }
+
+}
+
+void Solver::put(const Solver::Action &temp) {
+    int country_id = reader.data[2];
+        reader.areas[temp.y][temp.x].field_vaccine += temp.val;
+        reader.countries[country_id].RV -= int(temp.val);
+        PUT.push_back(temp);
 
 }
 
@@ -475,7 +484,6 @@ unordered_set<pair<int, int>, pair_hash> Solver::from_reserve() {
     return possible_choice;
 }
 
-
 void Solver::answer_msg(vector<std::string> &commands) {
     stringstream ss;
     string command;
@@ -514,8 +522,4 @@ void Solver::answer_msg(vector<std::string> &commands) {
 
     commands.emplace_back(".");
 }
-
-
-
-
 
