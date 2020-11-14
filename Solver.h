@@ -48,7 +48,7 @@ private:
     void vaccine_production();
     void back(const Action &temp);
     void put(const Action &temp);
-    std::unordered_set<std::pair<int, int>> from_reserve();
+    std::unordered_set<std::pair<int, int>, pair_hash> from_reserve();
     void district_areas();
     void DFS(std::vector<std::unordered_set<int>> &clear_szomszedsag);
     void possibilities(std::unordered_set<std::pair<int, int>,pair_hash> &possible_choice, const std::unordered_set<int> &possible_districts, const std::vector<std::unordered_set<int>> &clear_szomszedsag);
