@@ -127,6 +127,49 @@ void Solver::create_json_from_data() {
     }
     kf << "],\n";
 
+    kf << "\t\"clean_nbs\" : [";
+    for (size_t i = 0; i < clean_nbs_history.size();i++){ // tick
+      kf << "[";
+      for (size_t j = 0; j < clean_nbs_history[i].size(); j++) { // kerületek halmaza
+        kf << "[";
+        int num = 0;
+        for (const auto& distr : clean_nbs_history[i][j]) {  // kerület
+          num++;
+          if (num != clean_nbs_history[i][j].size()) {
+            for (auto coord : keruletek[distr]) { // terület
+                kf << "[" << to_string(coord.first) + ", " << to_string(coord.second) << "], ";
+            }
+          }
+          else {
+            int num2 = 0;
+            num2++;
+            if (num2 != keruletek[distr].size()){
+              for (auto coord : keruletek[distr]) { // terület
+                kf << "[" << to_string(coord.first) + ", " << to_string(coord.second) << "], ";
+              }
+            }
+            else {
+              for (auto coord : keruletek[distr]) { // terület
+                kf << "[" << to_string(coord.first) + ", " << to_string(coord.second) << "]";
+              }
+            }
+          }
+        }
+        if (j == clean_nbs_history[i].size()-1) {
+          kf << "]";
+        }
+        else {
+          kf << "], ";
+        }
+      }
+      if (i == clean_nbs_history.size()-1) {
+        kf << "]";
+      }else {
+        kf << "], ";
+      }
+    }
+    kf << "],\n";
+
     write_json_vv(kf, reader, "population");
     write_json_vv(kf, reader, "district");
 

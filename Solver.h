@@ -27,6 +27,7 @@ private:
     std::vector<std::vector<std::vector<unsigned int>>> health_rate_history;
     std::vector<std::vector<std::vector<unsigned int>>> vaccinated_history;  // vakcina által mennyi gyógyulás volt a területen
     std::vector<std::vector<std::vector<unsigned int>>> field_vaccine_history;  // vakcina által mennyi gyógyulás volt a területen
+    std::vector<std::vector<std::unordered_set<int>>> clean_nbs_history;
     std::vector<std::vector<std::string>> msg_history; // a kiírt válaszunk körönként
     std::vector<int> TPC_history;
     std::vector<int> RV_history;

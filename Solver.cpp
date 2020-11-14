@@ -313,11 +313,9 @@ void Solver::cleaned_back() {
                 temp.x = x;
                 temp.y = y;
                 back(temp);
-
             }
         }
     }
-
 }
 
 //vissza a központba
@@ -359,7 +357,6 @@ void Solver::district_areas() {
                      c.second < reader.dimension[1]) and
                     reader.areas[c.first][c.second].district != reader.areas[y][x].district) {
                     szomszedsag[reader.areas[y][x].district].insert(reader.areas[c.first][c.second].district);
-
                 }
             }
         }

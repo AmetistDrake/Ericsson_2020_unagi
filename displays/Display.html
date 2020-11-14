@@ -427,17 +427,6 @@
 
                         // Placeholder
                         context.fillStyle = 'rgba(0,0,0, 0.4)';
-                        context.fillRect(j * f_width +1 + 2 * (f_width-2) / divider, i * f_height -1 + f_height - (f_height-2) / divider, (f_width-2) / divider, (f_height-2) / divider);
-
-                        txt = "";
-                        context.font = String(f_width / 2 / text_divider) + "px Helvetica";
-                        context.fillStyle = "white";
-                        context.textBaseline = "middle";
-                        context.textAlign = "center";
-                        context.fillText(txt, j * f_width +1 + 2*(f_width-2) / divider + (f_width-2) / divider / 2, i * f_height -1 + (f_height-2) / divider / 2 + f_height - (f_height-2) / divider);
-
-                        // Placeholder
-                        context.fillStyle = 'rgba(0,0,0, 0.4)';
                         context.fillRect(j * f_width +1 + 3 * (f_width-2) / divider, i * f_height -1 + f_height - (f_height-2) / divider, (f_width-2) / divider, (f_height-2) / divider);
 
                         txt = "";
@@ -448,7 +437,20 @@
                         context.fillText(txt, j * f_width +1 + 3*(f_width-2) / divider + (f_width-2) / divider / 2, i * f_height -1 + (f_height-2) / divider / 2 + f_height - (f_height-2) / divider);
                     }
                 }
+                // Tiszta szomszédos területek
+                for (let i = 0; i < disp_info.clean_nbs[curr_tick].size; i++) {
+                    for (let j = 0; j < disp_info.clean_nbs[i].size; j++) {
+                        context.fillStyle = 'rgb(42,79,141)';
+                        context.fillRect(disp_info.clean_nbs[i][j][1] * f_width +1 + 2 * (f_width-2) / divider, disp_info.clean_nbs[i][j][0] * f_height -1 + f_height - (f_height-2) / divider, (f_width-2) / divider, (f_height-2) / divider);
 
+                        txt = String(i);
+                        context.font = String(f_width / 2 / text_divider) + "px Helvetica";
+                        context.fillStyle = "white";
+                        context.textBaseline = "middle";
+                        context.textAlign = "center";
+                        context.fillText(txt, disp_info.clean_nbs[i][j][1] * f_width +1 + 2*(f_width-2) / divider + (f_width-2) / divider / 2, disp_info.clean_nbs[i][j][0] * f_height -1 + (f_height-2) / divider / 2 + f_height - (f_height-2) / divider);
+                    }
+                }
             }
             else {
                 for(let i = 0; i < N; i++) {
