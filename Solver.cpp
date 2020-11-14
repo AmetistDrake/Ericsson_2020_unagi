@@ -310,7 +310,7 @@ void Solver::cleaned_back() {
                 }
                 temp.x = x;
                 temp.y = y;
-                back_to_reserve(temp);
+                back(temp);
 
             }
         }
@@ -319,13 +319,21 @@ void Solver::cleaned_back() {
 }
 
 //vissza a központba
-void Solver::back_to_reserve(const Solver::Action &temp) {
+void Solver::back(const Solver::Action &temp) {
     int country_id = reader.data[2];
     if (reader.areas[temp.y][temp.x].field_vaccine - temp.val >= 1) {
         reader.areas[temp.y][temp.x].field_vaccine -= temp.val;
         reader.countries[country_id].RV += int(temp.val);
         BACK.push_back(temp);
     }
+
+}
+
+void Solver::put(const Solver::Action &temp) {
+    int country_id = reader.data[2];
+        reader.areas[temp.y][temp.x].field_vaccine += temp.val;
+        reader.countries[country_id].RV -= int(temp.val);
+        PUT.push_back(temp);
 
 }
 
@@ -407,8 +415,7 @@ void Solver::possibilities(std::set<std::pair<int, int>> &possible_choice, const
             }
         }
     }
-    return;
-}
+    }
 
 // hova lehet tenni vakcinát?
 set<pair<int, int>> Solver::from_reserve() {
