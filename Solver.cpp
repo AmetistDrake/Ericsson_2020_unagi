@@ -32,26 +32,25 @@ vector<string> Solver::process(const vector<string>& infos) {
     clean_nbs_history.push_back(clean_temp);
 
     if (reader.data[1] == 0) {
-        if (reader.data[1] == 0) {
-            size_t district_count = 0;
-            for (size_t x = 0; x < reader.dimension[1]; x++) {
-                for (size_t y = 0; y < reader.dimension[0]; y++) {
-                    if(reader.areas[y][x].district > district_count){
-                        district_count = reader.areas[y][x].district;
-                    }
+        size_t district_count = 0;
+        for (size_t x = 0; x < reader.dimension[1]; x++) {
+            for (size_t y = 0; y < reader.dimension[0]; y++) {
+                if(reader.areas[y][x].district > district_count) {
+                    district_count = reader.areas[y][x].district;
                 }
             }
-            for (size_t i = 0; i < district_count; i++) {
-                unordered_set<pair<int, int>, pair_hash> temp;
-                keruletek.push_back(temp);
-                unordered_set<int> temp2;
-                szomszedsag.push_back(temp2);
-            }
-            district_areas();
-            field_vaccine_history.push_back(tmp); // legyen benne egy jövő, ami feltölthető a késleltetésekkel
-            TPC_0 = reader.countries[reader.data[2]].TPC;
         }
-    } else {
+        district_count++;
+        for (size_t i = 0; i < district_count; i++) {
+            unordered_set<pair<int, int>, pair_hash> temp;
+            keruletek.push_back(temp);
+            unordered_set<int> temp2;
+            szomszedsag.push_back(temp2);
+        }
+        district_areas();
+        field_vaccine_history.push_back(tmp); // legyen benne egy jövő, ami feltölthető a késleltetésekkel
+    }
+    else {
         for (size_t x = 0; x < reader.dimension[1]; x++) {
             for (size_t y = 0; y < reader.dimension[0]; y++) {
                 field_vaccine_history[reader.data[1] - 1][y][x] = reader.areas[y][x].field_vaccine;
