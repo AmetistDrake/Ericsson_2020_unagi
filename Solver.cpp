@@ -77,8 +77,8 @@ vector<string> Solver::process(const vector<string>& infos) {
                 }*/
 
                 unsigned int X = min(n * P, IR); //ennyivel csökken az infection és nő a healthRate vakcinázás után
-                int m = ceil(X / P); //ennyivel csökken a tartalék vakcinaszám az adott területen?? összesen??
-                //std::cout << "ennyivel fog csokkeni a tartalek vakcinaszam: " << m << '\n';
+                int m = ceil(X / P); //ennyivel csökken a tartalék vakcinaszám az adott területen
+                //std::cout << "ennyivel fog csokkeni a tartalek vakcinaszam az adott területen: " << m << '\n';
 
                 ///vakcina miatti gyógyulás
                 if (IR > 0 && n > 0) { //ha előző körben volt fertőzött és vakcina is van -> oltsa be
@@ -86,11 +86,11 @@ vector<string> Solver::process(const vector<string>& infos) {
                     vaccinated_history[reader.data[1]][y][x] = X; // vakcina által mennyi gyógyulás volt a területen
                     reader.areas[y][x].healthRate += X;
                     reader.areas[y][x].infectionRate -= X;
-                   ///tartalék vakcinaszám csökkentése
-                   //adott területen is kéne m vakcinával csökkenteni a területi vakcinaszámot???
+
+                   ///tartalék vakcinaszám csökkentése terület és országok szintjén
+                   reader.areas[y][x].field_vaccine -= m;
                    for (auto a : reader.countries) {
                        a.second.RV = floor(a.second.RV * (n - m) / n);
-                       //std::cout<< "A vakcinak szama ennyi a csokkenes utan: " << floor(a.second.RV * (n - m) / n) <<'\n';
                   }
                    h = floor(healing(y, x) * (IR - X) / IR); //ha van vakcina módosul a visszatérési érték
                 }else{
