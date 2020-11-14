@@ -374,8 +374,10 @@ void Solver::DFS(std::vector<std::unordered_set<int>> &clear_szomszedsag) {
         valtozas = false;
         for (size_t i = 0; i < szomszedsag.size(); i++) {
             if (reader.safe_districts.find(i) != reader.safe_districts.end()) {
+
                 for (auto j : szomszedsag[i]) {
                     if (reader.safe_districts.find(j) != reader.safe_districts.end()) {
+
                         auto temp = clear_szomszedsag[i];
                         clear_szomszedsag[i].insert(j);
                         if (!clear_szomszedsag[j].empty()) {
@@ -389,14 +391,17 @@ void Solver::DFS(std::vector<std::unordered_set<int>> &clear_szomszedsag) {
             }
         }
     }
+
     vector<unordered_set<int>> temp;
     for(size_t item = 0; item < clear_szomszedsag.size(); item ++ ){
+        if(clear_szomszedsag[item].size() !=0){
        unordered_set<int> t;
        t.insert(item);
        for(auto szomszed: clear_szomszedsag[item]){
            t.insert(szomszed);
        }
        temp.push_back(t);
+    }
     }
     for(auto item=0; item < temp.size(); item ++){
         for(auto belso_item = item+1; belso_item < temp.size(); belso_item++){
@@ -405,6 +410,8 @@ void Solver::DFS(std::vector<std::unordered_set<int>> &clear_szomszedsag) {
             }
         }
     }
+
+
     clean_nbs_history[reader.data[1]]=temp;
 
 }
