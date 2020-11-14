@@ -640,14 +640,11 @@
         }
 
         function DrawScaledMap() {
-            origin.x = 0;
-            origin.y = 0;
-            full_canvas_origin.x = 0;
-            full_canvas_origin.y = 0;
-            context.translate(0, 0);
+            context.save();
+            context.translate(full_canvas_origin.x, full_canvas_origin.y);
             context.scale(scale, scale);
             DrawMap();
-            context.scale(1/scale, 1/scale);
+            context.restore();
         }
 
         function refreshDispInfo (){
