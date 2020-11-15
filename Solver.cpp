@@ -62,8 +62,10 @@ vector<string> Solver::process(const vector<string> &infos) {
         }
     }
 
-    unordered_set<pair<int, int>, pair_hash> starting_coords = from_reserve(); // visszaad egy unordered_set<pair<int, int>, pair_hash> -et amiben a lehetséges területek vannak, ahova vakcinát lehet tenni
+    from_reserve(); // visszaad egy unordered_set<pair<int, int>, pair_hash> -et amiben a lehetséges területek vannak, ahova vakcinát lehet tenni
     //minden letétel után meg kell nézni az új lehetséges területeket
+
+    pair<unsigned int, unsigned int> where_to_put(starting_coords,fields_to_vaccinate);
 
 
     // 2) healing - fertőzöttek gyógyulása
@@ -73,7 +75,6 @@ vector<string> Solver::process(const vector<string> &infos) {
 
     // 3) megtisztítottról visszekerül az országraktárba
     cleaned_back();
-
 
     // 4) infection - vírus terjed
     infection_history.push_back(tmp);
