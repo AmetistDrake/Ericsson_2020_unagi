@@ -173,31 +173,20 @@ unsigned int Solver::infection(unsigned int y, unsigned int x) {
         sum += infection_history[curr_tick - i][y][x];
     }
 
-    vector<std::pair<int, int>> neighbours{{0,  0},
-                                           {-1, 0},
-                                           {0,  -1},
-                                           {1,  0},
-                                           {0,  1}};
+    vector<std::pair<int, int>> neighbours = return_nbs({y,x});
+    neighbours.emplace_back(y,x);
 
     // additív átfertőződés
     unsigned int sum_infection_rate = 0;
     double avg_infection_rate;
     double counter = 5;
     for (auto nbs : neighbours) {
-        pair<int, int> c(y - nbs.first, x - nbs.second);
-
-        if (!(0 <= c.first and c.first < reader.dimension[0] and
-              0 <= c.second and c.second < reader.dimension[1])) // határpontok szomszédait nem vizsgáljuk
-        {
-            counter--;
-            continue;
-        }
 
         // dist kiszámítása
         unsigned int dist; // távolság {0,...2] közül valami
         if (reader.areas[y][x].district !=
-            reader.areas[c.first][c.second].district) { dist = 2; } // különböző kerületben vannak
-        else if (y != unsigned(c.first) or x != unsigned(c.second)) { dist = 1; } // azonos kerületben vannak
+            reader.areas[nbs.first][nbs.second].district) { dist = 2; } // különböző kerületben vannak
+        else if (y != unsigned(nbs.first) or x != unsigned(nbs.second)) { dist = 1; } // azonos kerületben vannak
         else { dist = 0; } // a terület önmaga
 
         if (reader.data[1] == 13 && y == 19 && x == 17) {
@@ -208,9 +197,9 @@ unsigned int Solver::infection(unsigned int y, unsigned int x) {
         }
 
         // sum_infection_rate kiszámítása a szomszédos fertőző területek népessége alapján, ha eléggé fertőzőek voltak előző körben
-        if (infection_rate_history[curr_tick - 1][c.first][c.second] > t * dist) {
+        if (infection_rate_history[curr_tick - 1][nbs.first][nbs.second] > t * dist) {
             unsigned int population_diff =
-                    clamp(int(reader.areas[y][x].population - reader.areas[c.first][c.second].population), 0, 2) + 1;
+                    clamp(int(reader.areas[y][x].population - reader.areas[nbs.first][nbs.second].population), 0, 2) + 1;
             if (reader.data[1] == 13 && y == 19 && x == 17) {
 //                cout << "first population: " << tick_info[0][y][x].population << endl;
 //                cout << "second population: " << tick_info[0][c.first][c.second].population << endl;
@@ -268,25 +257,19 @@ void Solver::vaccine_production() {
     int country_id = reader.data[2];
     unsigned int sum_of_areas = 0;
     unsigned int minus_val = 0;
-    vector<std::pair<int, int>> neighbours{{-1, 0},
-                                           {0,  -1},
-                                           {1,  0},
-                                           {0,  1}};
+
 
     for (auto clean: reader.safe_districts) {
         for (size_t y = 0; y < reader.areas.size(); y++) {
             for (std::size_t x = 0; x < reader.areas[y].size(); x++) {
                 if (reader.areas[y][x].district == clean.first) {
+                    vector<std::pair<int, int>> neighbours = return_nbs({y,x});
                     for (auto nbs : neighbours) {
-                        pair<int, int> c(y - nbs.first, x - nbs.second);
-                        if ((0 <= c.first and c.first < reader.dimension[0] and
-                             0 <= c.second and c.second < reader.dimension[1])) {
-                            if (reader.countries[country_id].ASID.find(reader.areas[c.first][c.second].district) ==
+                            if (reader.countries[country_id].ASID.find(reader.areas[nbs.first][nbs.second].district) ==
                                 reader.countries[country_id].ASID.end()) {
                                 //szomszed még nem megtisztított
-                                minus_val += (6 - reader.areas[c.first][c.second].population);
+                                minus_val += (6 - reader.areas[nbs.first][nbs.second].population);
                             }
-                        }
                     }
                     sum_of_areas++;
                 }
@@ -352,18 +335,12 @@ void Solver::district_areas() {
         }
     }
 
-    vector<std::pair<int, int>> neighbours{{-1, 0},
-                                           {0,  -1},
-                                           {1,  0},
-                                           {0,  1}};
     for (size_t x = 0; x < reader.dimension[1]; x++) {
         for (size_t y = 0; y < reader.dimension[0]; y++) {
+            vector<std::pair<int, int>> neighbours = return_nbs({y,x});
             for (auto nbs : neighbours) {
-                pair<int, int> c(y - nbs.first, x - nbs.second);
-                if ((0 <= c.first and c.first < reader.dimension[0] and 0 <= c.second and
-                     c.second < reader.dimension[1]) and
-                    reader.areas[c.first][c.second].district != reader.areas[y][x].district) {
-                    szomszedsag[reader.areas[y][x].district].insert(reader.areas[c.first][c.second].district);
+                if(reader.areas[nbs.first][nbs.second].district != reader.areas[y][x].district) {
+                    szomszedsag[reader.areas[y][x].district].insert(reader.areas[nbs.first][nbs.second].district);
                 }
             }
         }
@@ -426,10 +403,7 @@ void Solver::DFS(std::vector<std::unordered_set<int>> &clear_szomszedsag) {
 void Solver::possibilities(std::unordered_set<std::pair<int, int>, pair_hash> &possible_choice,
                            const std::unordered_set<int> &possible_districts,
                            const std::vector<std::unordered_set<int>> &clear_szomszedsag) {
-    vector<std::pair<int, int>> neighbours{{-1, 0},
-                                           {0,  -1},
-                                           {1,  0},
-                                           {0,  1}};
+
     unordered_set<int> pd;
     for (auto dist: possible_districts) {
         pd.insert(dist);
@@ -439,12 +413,10 @@ void Solver::possibilities(std::unordered_set<std::pair<int, int>, pair_hash> &p
     }
     for (auto i: pd) {
         for (auto terulet: keruletek[i]) {
+            vector<std::pair<int, int>> neighbours= return_nbs({terulet});
             for (auto nbs : neighbours) {
-                int y = terulet.first - nbs.first;
-                int x = terulet.second - nbs.second;
-                if ((0 <= y and y < reader.dimension[0] and 0 <= x and x < reader.dimension[1]) and
-                    reader.safe_districts.find(reader.areas[y][x].district) == reader.safe_districts.end()) {
-                    possible_choice.insert({y, x});
+                if (reader.safe_districts.find(reader.areas[nbs.first][nbs.second].district) == reader.safe_districts.end()) {
+                    possible_choice.insert({nbs});
                 }
             }
         }
@@ -453,10 +425,6 @@ void Solver::possibilities(std::unordered_set<std::pair<int, int>, pair_hash> &p
 
 // hova lehet tenni vakcinát?
 unordered_set<pair<int, int>, pair_hash> Solver::from_reserve() {
-    vector<std::pair<int, int>> neighbours{{-1, 0},
-                                           {0,  -1},
-                                           {1,  0},
-                                           {0,  1}};
     vector<unordered_set<int>> clear_szomszedsag(szomszedsag.size());
     unordered_set<pair<int, int>, pair_hash> possible;
     unordered_set<pair<int, int>, pair_hash> possible_choice;
@@ -494,20 +462,15 @@ unordered_set<pair<int, int>, pair_hash> Solver::from_reserve() {
     else {
         for (auto i: possible) {
             possible_choice.insert(i); // akkor csak ezekre a területekre lehet tenni
+            vector<std::pair<int, int>> neighbours = return_nbs(i);
             for (auto nbs : neighbours) {
-                int _y = i.first - nbs.first;
-                int _x = i.second - nbs.second;
-                if ((0 <= _y and _y < reader.dimension[0] and 0 <= _x and _x < reader.dimension[1]) ){ //élszomszédos
-                    if( reader.safe_districts.find(reader.areas[_y][_x].district) == reader.safe_districts.end()) { // vagy a velük élszomszédos, és nem tiszta kerületű területre.
-                        possible_choice.insert({_y, _x});
+                    if( reader.safe_districts.find(reader.areas[nbs.first][nbs.second].district) == reader.safe_districts.end()) { // vagy a velük élszomszédos, és nem tiszta kerületű területre.
+                        possible_choice.insert({nbs.first, nbs.second});
                     }
                     //Ha van egy olyan terület, ahol van az országnak tartalék vakcinája, és az élszomszédos egy olyan területtel, amelynek kerülete tiszta, akkor azon tiszta kerület területeinek élszomszédos területei, amelyek nem tiszta kerülethez tartoznak, oda is tehető vakcina.
                     else{
-                        possible_districts.insert(reader.areas[_y][_x].district);
+                        possible_districts.insert(reader.areas[nbs.first][nbs.second].district);
                     }
-
-                }
-
             }
 
         }
@@ -552,6 +515,22 @@ void Solver::upload_nbs() {
             }
         }
 
+}
+vector<pair<int, int>> Solver::return_nbs(const pair<int,int>& koord){
+    vector< pair<int, int>> returner;
+    if(reader.areas[koord.first][koord.second].right != nullptr){
+        returner.emplace_back(koord.first,koord.second+1);
+    }
+    if(reader.areas[koord.first][koord.second].left != nullptr){
+        returner.emplace_back(koord.first,koord.second-1);
+    }
+    if(reader.areas[koord.first][koord.second].up != nullptr){
+        returner.emplace_back(koord.first-1,koord.second);
+    }
+    if(reader.areas[koord.first][koord.second].down != nullptr){
+        returner.emplace_back(koord.first+1,koord.second);
+    }
+    return returner;
 }
 
 
