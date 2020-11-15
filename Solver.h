@@ -51,6 +51,7 @@ private:
     std::unordered_set<std::pair<int, int>, pair_hash> from_reserve();
     void district_areas();
     void DFS(std::vector<std::unordered_set<int>> &clear_szomszedsag);
+    void upload_nbs();
     void possibilities(std::unordered_set<std::pair<int, int>,pair_hash> &possible_choice, const std::unordered_set<int> &possible_districts, const std::vector<std::unordered_set<int>> &clear_szomszedsag);
 public:
     Solver();

@@ -31,6 +31,7 @@ vector<string> Solver::process(const vector<string>& infos) {
     clean_nbs_history.push_back(clean_temp);
 
     if (reader.data[1] == 0) {
+       upload_nbs();
         size_t district_count = 0;
         for (size_t x = 0; x < reader.dimension[1]; x++) {
             for (size_t y = 0; y < reader.dimension[0]; y++) {
@@ -514,6 +515,46 @@ unordered_set<pair<int, int>, pair_hash> Solver::from_reserve() {
     }
     return possible_choice;
 }
+
+
+void Solver::upload_nbs() {
+        for (size_t y = 0; y < reader.dimension[0]; y++) {
+            for (size_t x = 0; x < reader.dimension[1]; x++) {
+                reader.areas[y][x].left = new Area;
+                reader.areas[y][x].up = new Area;
+                reader.areas[y][x].down = new Area;
+                reader.areas[y][x].right = new Area;
+
+                if(x == 0){
+                    reader.areas[y][x].left = nullptr;
+                }
+                else{
+                    *reader.areas[y][x].left = reader.areas[y][x-1];
+                }
+                if(x == (reader.dimension[1]-1)){
+                    reader.areas[y][x].right = nullptr;
+                }
+                else{
+                    *reader.areas[y][x].right = reader.areas[y][x+1];
+                }
+                if(y== 0){
+                    reader.areas[y][x].up = nullptr;
+                }
+                else{
+                    *reader.areas[y][x].up = reader.areas[y-1][x];
+                }
+                if(y == (reader.dimension[0]-1)){
+                    reader.areas[y][x].down = nullptr;
+                }
+                else{
+                    *reader.areas[y][x].down = reader.areas[y+1][x];
+                }
+            }
+        }
+
+}
+
+
 
 void Solver::answer_msg(vector<std::string> &commands) {
     stringstream ss;

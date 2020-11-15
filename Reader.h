@@ -20,6 +20,7 @@ struct Area {
     unsigned int healthRate;
     unsigned int population;
     unsigned int field_vaccine;
+    Area * left, *right, *up, *down;
 };
 
 class Reader {
