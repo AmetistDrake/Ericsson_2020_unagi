@@ -30,7 +30,8 @@ vector<string> Solver::process(const vector<string> &infos) {
     field_vaccine_history.push_back(tmp);
     clean_nbs_history.push_back(clean_temp);
 
-    if (reader.data[1] == 0) {
+    if (reader.data[1] == 0) { // első körös feltöltés
+        // district számolás
         upload_nbs();
         size_t district_count = 0;
         for (size_t x = 0; x < reader.dimension[1]; x++) {
@@ -41,6 +42,7 @@ vector<string> Solver::process(const vector<string> &infos) {
             }
         }
 
+        // kerületek szomszédságai, kerületenkénti területek
         for (size_t i = 0; i <= district_count; i++) {
             unordered_set<pair<int, int>, pair_hash> temp;
             keruletek.push_back(temp);
@@ -48,6 +50,7 @@ vector<string> Solver::process(const vector<string> &infos) {
             szomszedsag.push_back(temp2);
         }
         district_areas();
+
         field_vaccine_history.push_back(tmp); // legyen benne egy jövő, ami feltölthető a késleltetésekkel
         TPC_0 = reader.countries[reader.data[2]].TPC;
     } else {
@@ -55,15 +58,13 @@ vector<string> Solver::process(const vector<string> &infos) {
             for (size_t y = 0; y < reader.dimension[0]; y++) {
                 field_vaccine_history[reader.data[1] - 1][y][x] = reader.areas[y][x].field_vaccine;
                 reader.areas[y][x].field_vaccine += field_vaccine_history[reader.data[1]][y][x];
-                /*if(reader.areas[y][x].field_vaccine > 0){
-                    vaccinated_fields.insert({y,x});
-                }*/
             }
         }
     }
 
-    from_reserve(); // visszaad egy unordered_set<pair<int, int>, pair_hasher> -et amiben a lehetséges területek vannak, ahova vakcinát lehet tenni
+    unordered_set<pair<int, int>, pair_hash> starting_coords = from_reserve(); // visszaad egy unordered_set<pair<int, int>, pair_hash> -et amiben a lehetséges területek vannak, ahova vakcinát lehet tenni
     //minden letétel után meg kell nézni az új lehetséges területeket
+
 
     // 2) healing - fertőzöttek gyógyulása
     healing_history.push_back(tmp);

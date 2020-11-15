@@ -88,7 +88,7 @@ pair<size_t, size_t> wheretoput (const Reader& reader, const vector<pair<size_t,
                 curr_node = table[curr_node].prev_visited;
             }
             possible_coords.push({curr_node, table[coord].dist});
-            // cout << curr_node.first << "," << curr_node.second << " " << table[coord].dist << endl;
+            //cout << curr_node.first << "," << curr_node.second << " " << table[coord].dist << endl;
         }
     }
 
@@ -112,7 +112,7 @@ int main() {
         cout << endl;
     }
 
-    vector<pair<size_t, size_t>> from {{0,0}, {0, 1}};
+    vector<pair<size_t, size_t>> from {{2,1}, {0, 1}};
     vector<pair<size_t, size_t>> to {{2,1},{0,3}};
     wheretoput(reader, from, to);
 
