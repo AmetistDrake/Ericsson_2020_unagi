@@ -64,36 +64,47 @@ vector<string> Solver::process(const vector<string> &infos) {
 
     //from_reserve();  visszaad egy unordered_set<pair<int, int>, pair_hash> -et amiben a lehetséges területek vannak, ahova vakcinát lehet tenni
     //minden letétel után meg kell nézni az új lehetséges területeket
-    bool enough_vaccine = true;
-while(enough_vaccine){
-    pair<unsigned int, unsigned int> c = where_to_put(possible_choice,fields_to_vaccinate);
-    Action temp;
-    temp.y = c.first;
-    temp.x = c.second;
-    if (reader.areas[c.first][c.second].field_vaccine ==0){
-        int min_vaccine = 6 - reader.areas[c.first][c.second].population;
-        if(reader.countries[reader.data[2]].RV >= min_vaccine){
-            temp.val = min_vaccine;
-            put(temp);
-        }
-        else{
-            enough_vaccine=false;
-        }
+    bool enough_vaccine;
+    if (reader.countries[reader.data[2]].RV > 0) {
+        enough_vaccine = true;
+    } else {
+        enough_vaccine = false;
     }
-    else{
-        int needed_vaccine= reader.areas[c.first][c.second].infectionRate - healing_history[reader.data[1]][c.first][c.second];
-        if(needed_vaccine <0){needed_vaccine =0;}
-        if(reader.countries[reader.data[2]].RV >= needed_vaccine){
-            temp.val= needed_vaccine;
-            put(temp);
+
+    while (enough_vaccine) {
+        pair<unsigned int, unsigned int> c = where_to_put(possible_choice, fields_to_vaccinate);
+        Action temp{};
+        temp.y = c.first;
+        temp.x = c.second;
+        if (reader.areas[c.first][c.second].infectionRate == 0) { //ha tiszta terület
+            if (reader.areas[c.first][c.second].field_vaccine == 0) { //és még nincs rajta vakcina akkor minimum megy rá
+                int min_vaccine = 6 - reader.areas[c.first][c.second].population;
+                if (reader.countries[reader.data[2]].RV >= min_vaccine) {
+                    temp.val = min_vaccine;
+                    put(temp);
+                } else {
+                    enough_vaccine = false;
+                }
+            }
+            if (enough_vaccine) {
+                possible_choice.insert({c.first, c.second});
+            }
         }
-        else{
-            temp.val = reader.countries[reader.data[2]].RV;
-            put(temp);
-            enough_vaccine = false;
+        else {// ha fertőzött területen vagyunk
+            int needed_vaccine = reader.areas[c.first][c.second].infectionRate - healing_history[reader.data[1]][c.first][c.second];
+            if (needed_vaccine < 0) { needed_vaccine = 0; }
+            if (reader.countries[reader.data[2]].RV >= needed_vaccine) { // ha van elég vakcina
+                temp.val = needed_vaccine;
+                put(temp);
+                fields_to_vaccinate.erase({c.first, c.second});
+            } else {
+                temp.val = reader.countries[reader.data[2]].RV;
+                put(temp);
+                enough_vaccine = false;
+            }
         }
+
     }
-}
 
 
 
@@ -179,7 +190,8 @@ unsigned int Solver::infection(unsigned int y, unsigned int x) {
 
         // dist kiszámítása
         unsigned int dist; // távolság {0,...2] közül valami
-        if (reader.areas[y][x].district != reader.areas[nbs.first][nbs.second].district) { dist = 2; } // különböző kerületben vannak
+        if (reader.areas[y][x].district !=
+            reader.areas[nbs.first][nbs.second].district) { dist = 2; } // különböző kerületben vannak
         else if (y != unsigned(nbs.first) or x != unsigned(nbs.second)) { dist = 1; } // azonos kerületben vannak
         else { dist = 0; } // a terület önmaga
         if (reader.data[1] == 13 && y == 19 && x == 17) {
@@ -248,7 +260,8 @@ unsigned int Solver::healing(unsigned int y, unsigned int x) {
 }
 
 void Solver::implement_healing() {
-    for (size_t x = 0; x < reader.dimension[1]; x++) { // oszlop és sorfolytonos indexelés, ez fontos, mert számít hogy a faktorok melyik iterációban frissülnek
+    for (size_t x = 0; x <
+                       reader.dimension[1]; x++) { // oszlop és sorfolytonos indexelés, ez fontos, mert számít hogy a faktorok melyik iterációban frissülnek
         for (size_t y = 0; y < reader.dimension[0]; y++) {
             if (reader.areas[y][x].infectionRate > 0 && (y + x < reader.data[1])) {
                 unsigned int h = healing(y, x); //ha nincs vakcina alapból ennyi a healing
@@ -269,7 +282,8 @@ void Solver::implement_healing() {
 
                 ///vakcina miatti gyógyulás
                 //mi van ha a területen nincs is vakcina?? feladatleírás alapján nem egyértelmű ennek a tesztelése
-                if (IR > 0 && n > 0 && reader.sum_of_previous_vaccine_on_areas[y][x] > 0) { //ha előző körben volt fertőzött és vakcina is van -> oltsa be
+                if (IR > 0 && n > 0 && reader.sum_of_previous_vaccine_on_areas[y][x] >
+                                       0) { //ha előző körben volt fertőzött és vakcina is van -> oltsa be
                     //std::cout<< "Van " << n << "db vakcina osszesen. ";
                     vaccinated_history[reader.data[1]][y][x] = X; // vakcina által mennyi gyógyulás volt a területen
                     reader.areas[y][x].healthRate += X;
@@ -476,9 +490,10 @@ void Solver::from_reserve() {
         for (size_t y = 0; y < reader.dimension[0]; y++) {
             if (reader.areas[y][x].field_vaccine > 0) {
                 //possible.insert({y, x});
-                vaccinated_fields.insert({y,x}); //azok a területek ahol van vakcina
-            }if (reader.areas[y][x].field_vaccine == 0 && reader.areas[y][x].infectionRate > 0){
-                fields_to_vaccinate.insert({y,x}); //fertőzött területek, ahol nincs vakcina
+                vaccinated_fields.insert({y, x}); //azok a területek ahol van vakcina
+            }
+            if (reader.areas[y][x].field_vaccine == 0 && reader.areas[y][x].infectionRate > 0) {
+                fields_to_vaccinate.insert({y, x}); //fertőzött területek, ahol nincs vakcina
             }
         }
     }
@@ -489,7 +504,7 @@ void Solver::from_reserve() {
                 if (x == 0 or y == 0 or x == reader.dimension[1] - 1 or y == reader.dimension[0] - 1) {
                     if (reader.safe_districts.find(reader.areas[y][x].district) == reader.safe_districts.end()) {
                         possible_choice.insert({y, x});
-                    }else{
+                    } else {
                         possible_districts.insert(reader.areas[y][x].district);
                     }
                 }
@@ -497,10 +512,10 @@ void Solver::from_reserve() {
 
         }
 
-        possibilities( possible_districts, clear_szomszedsag);
+        possibilities(possible_districts, clear_szomszedsag);
 
     }
-    //Ha van legalább egy területen tartalék vakcinája az országnak
+        //Ha van legalább egy területen tartalék vakcinája az országnak
     else {
         for (auto i: vaccinated_fields) {
             possible_choice.insert(i); // akkor csak ezekre a területekre lehet tenni
@@ -517,7 +532,7 @@ void Solver::from_reserve() {
             }
 
         }
-        possibilities( possible_districts, clear_szomszedsag);
+        possibilities(possible_districts, clear_szomszedsag);
     }
 
 }
@@ -550,8 +565,6 @@ void Solver::upload_nbs() {
         }
     }
 }
-
-
 
 
 vector<pair<int, int>> Solver::return_nbs(const pair<int, int> &koord) {
