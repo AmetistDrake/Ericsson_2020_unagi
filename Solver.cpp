@@ -62,10 +62,40 @@ vector<string> Solver::process(const vector<string> &infos) {
         }
     }
 
-    from_reserve(); // visszaad egy unordered_set<pair<int, int>, pair_hash> -et amiben a lehetséges területek vannak, ahova vakcinát lehet tenni
+    //from_reserve();  visszaad egy unordered_set<pair<int, int>, pair_hash> -et amiben a lehetséges területek vannak, ahova vakcinát lehet tenni
     //minden letétel után meg kell nézni az új lehetséges területeket
+    bool enough_vaccine = true;
+while(enough_vaccine){
+    pair<unsigned int, unsigned int> c = where_to_put(possible_choice,fields_to_vaccinate);
+    Action temp;
+    temp.y = c.first;
+    temp.x = c.second;
+    if (reader.areas[c.first][c.second].field_vaccine ==0){
+        int min_vaccine = 6 - reader.areas[c.first][c.second].population;
+        if(reader.countries[reader.data[2]].RV >= min_vaccine){
+            temp.val = min_vaccine;
+            put(temp);
+        }
+        else{
+            enough_vaccine=false;
+        }
+    }
+    else{
+        int needed_vaccine= reader.areas[c.first][c.second].infectionRate - healing_history[reader.data[1]][c.first][c.second];
+        if(needed_vaccine <0){needed_vaccine =0;}
+        if(reader.countries[reader.data[2]].RV >= needed_vaccine){
+            temp.val= needed_vaccine;
+            put(temp);
+        }
+        else{
+            temp.val = reader.countries[reader.data[2]].RV;
+            put(temp);
+            enough_vaccine = false;
+        }
+    }
+}
 
-    pair<unsigned int, unsigned int> where_to_put(starting_coords,fields_to_vaccinate);
+
 
 
     // 2) healing - fertőzöttek gyógyulása
@@ -410,8 +440,7 @@ void Solver::DFS(std::vector<std::unordered_set<int>> &clear_szomszedsag) {
 
 
 // kerületekellel élszomsédos területekeket kigyűjti, amik lehetséges vakcinahelyek
-void Solver::possibilities(std::unordered_set<std::pair<int, int>, pair_hash> &possible_choice,
-                           const std::unordered_set<int> &possible_districts,
+void Solver::possibilities(const std::unordered_set<int> &possible_districts,
                            const std::vector<std::unordered_set<int>> &clear_szomszedsag) {
 
     unordered_set<int> pd;
@@ -435,10 +464,9 @@ void Solver::possibilities(std::unordered_set<std::pair<int, int>, pair_hash> &p
 }
 
 // hova lehet tenni vakcinát?
-unordered_set<pair<int, int>, pair_hash> Solver::from_reserve() {
+void Solver::from_reserve() {
+    possible_choice.clear();
     vector<unordered_set<int>> clear_szomszedsag(szomszedsag.size());
-    //unordered_set<pair<int, int>, pair_hash> possible;
-    unordered_set<pair<int, int>, pair_hash> possible_choice;
     unordered_set<int> possible_districts;
     DFS(clear_szomszedsag);
 
@@ -469,7 +497,7 @@ unordered_set<pair<int, int>, pair_hash> Solver::from_reserve() {
 
         }
 
-        possibilities(possible_choice, possible_districts, clear_szomszedsag);
+        possibilities( possible_districts, clear_szomszedsag);
 
     }
     //Ha van legalább egy területen tartalék vakcinája az országnak
@@ -489,9 +517,9 @@ unordered_set<pair<int, int>, pair_hash> Solver::from_reserve() {
             }
 
         }
-        possibilities(possible_choice, possible_districts, clear_szomszedsag);
+        possibilities( possible_districts, clear_szomszedsag);
     }
-    return possible_choice;
+
 }
 
 
@@ -522,6 +550,9 @@ void Solver::upload_nbs() {
         }
     }
 }
+
+
+
 
 vector<pair<int, int>> Solver::return_nbs(const pair<int, int> &koord) {
     vector<pair<int, int>> returner;

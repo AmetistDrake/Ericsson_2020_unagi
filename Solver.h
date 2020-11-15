@@ -28,6 +28,7 @@ private:
     std::vector<std::vector<std::vector<unsigned int>>> vaccinated_history;  //vakcina által mennyi gyógyulás volt a területen
     std::vector<std::vector<std::vector<unsigned int>>> field_vaccine_history;  //mennyi vakcinát tettünk le a területre
     std::vector<std::vector<std::unordered_set<int>>> clean_nbs_history;
+    std::unordered_set<std::pair<int, int>, pair_hash> possible_choice;
     std::vector<std::vector<std::string>> msg_history; // a kiírt válaszunk körönként
     std::vector<int> TPC_history;
     std::vector<int> RV_history;
@@ -52,12 +53,12 @@ private:
     void vaccine_production();
     void back(const Action &temp);
     void put(const Action &temp);
-    std::unordered_set<std::pair<int, int>, pair_hash> from_reserve();
+    void from_reserve();
     void district_areas();
     void DFS(std::vector<std::unordered_set<int>> &clear_szomszedsag);
     void upload_nbs();
     std::vector<std::pair<int, int>> return_nbs(const std::pair<int, int > &koord);
-    void possibilities(std::unordered_set<std::pair<int, int>,pair_hash> &possible_choice, const std::unordered_set<int> &possible_districts, const std::vector<std::unordered_set<int>> &clear_szomszedsag);
+    void possibilities( const std::unordered_set<int> &possible_districts, const std::vector<std::unordered_set<int>> &clear_szomszedsag);
 public:
     Solver();
     ~Solver();
