@@ -25,17 +25,19 @@ private:
     std::vector<std::vector<std::vector<unsigned int>>> healing_history; // magától mennyi gyógyulás volt a területen
     std::vector<std::vector<std::vector<unsigned int>>> infection_rate_history;
     std::vector<std::vector<std::vector<unsigned int>>> health_rate_history;
-    std::vector<std::vector<std::vector<unsigned int>>> vaccinated_history;  // vakcina által mennyi gyógyulás volt a területen
-    std::vector<std::vector<std::vector<unsigned int>>> field_vaccine_history;  // vakcina által mennyi gyógyulás volt a területen
+    std::vector<std::vector<std::vector<unsigned int>>> vaccinated_history;  //vakcina által mennyi gyógyulás volt a területen
+    std::vector<std::vector<std::vector<unsigned int>>> field_vaccine_history;  //mennyi vakcinát tettünk le a területre
     std::vector<std::vector<std::unordered_set<int>>> clean_nbs_history;
     std::vector<std::vector<std::string>> msg_history; // a kiírt válaszunk körönként
     std::vector<int> TPC_history;
     std::vector<int> RV_history;
     int TPC_0;
 
-
     std::vector<std::unordered_set<std::pair<int, int>, pair_hash>> keruletek;
     std::vector<std::unordered_set<int>> szomszedsag;
+
+    std::unordered_set<std::pair<int, int>, pair_hash> vaccinated_fields; //Dijkstra start: területek amiken van vakcina
+    std::unordered_set<std::pair<int, int>, pair_hash> fields_to_vaccinate; //Dijkstra cél: fertőzött terület, de nincs rajta vakcina
 
     std::vector<Action> BACK;
     std::vector<Action> PUT;

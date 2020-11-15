@@ -55,12 +55,15 @@ vector<string> Solver::process(const vector<string> &infos) {
             for (size_t y = 0; y < reader.dimension[0]; y++) {
                 field_vaccine_history[reader.data[1] - 1][y][x] = reader.areas[y][x].field_vaccine;
                 reader.areas[y][x].field_vaccine += field_vaccine_history[reader.data[1]][y][x];
+                /*if(reader.areas[y][x].field_vaccine > 0){
+                    vaccinated_fields.insert({y,x});
+                }*/
             }
         }
     }
 
     from_reserve(); // visszaad egy unordered_set<pair<int, int>, pair_hasher> -et amiben a lehetséges területek vannak, ahova vakcinát lehet tenni
-//minden letétel után meg kell nézni az új lehetséges területeket
+    //minden letétel után meg kell nézni az új lehetséges területeket
 
     // 2) healing - fertőzöttek gyógyulása
     healing_history.push_back(tmp);
@@ -85,6 +88,7 @@ vector<string> Solver::process(const vector<string> &infos) {
                 //std::cout << "ennyivel fog csokkeni a tartalek vakcinaszam az adott területen: " << m << '\n';
 
                 ///vakcina miatti gyógyulás
+                //mi van ha a területen nincs is vakcina?? feladatleírás alapján nem egyértelmű ennek a tesztelése
                 if (IR > 0 && n > 0) { //ha előző körben volt fertőzött és vakcina is van -> oltsa be
                     //std::cout<< "Van " << n << "db vakcina osszesen. ";
                     vaccinated_history[reader.data[1]][y][x] = X; // vakcina által mennyi gyógyulás volt a területen
@@ -426,28 +430,31 @@ void Solver::possibilities(std::unordered_set<std::pair<int, int>, pair_hash> &p
 // hova lehet tenni vakcinát?
 unordered_set<pair<int, int>, pair_hash> Solver::from_reserve() {
     vector<unordered_set<int>> clear_szomszedsag(szomszedsag.size());
-    unordered_set<pair<int, int>, pair_hash> possible;
+    //unordered_set<pair<int, int>, pair_hash> possible;
     unordered_set<pair<int, int>, pair_hash> possible_choice;
     unordered_set<int> possible_districts;
     DFS(clear_szomszedsag);
 
 
-// ellenőrzés, hogy van-e valahol vakcina
+    // ellenőrzés, hogy van-e valahol vakcina
     for (size_t x = 0; x < reader.dimension[1]; x++) {
         for (size_t y = 0; y < reader.dimension[0]; y++) {
             if (reader.areas[y][x].field_vaccine > 0) {
-                possible.insert({y, x});
+                //possible.insert({y, x});
+                vaccinated_fields.insert({y,x}); //azok a területek ahol van vakcina
+            }if (reader.areas[y][x].field_vaccine == 0 && reader.areas[y][x].infectionRate > 0){
+                fields_to_vaccinate.insert({y,x}); //fertőzött területek, ahol nincs vakcina
             }
         }
     }
-// Ha nincs egy területen se tartalék vakcinája az országnak
-    if (possible.empty()) {
+    // Ha nincs egy területen se tartalék vakcinája az országnak
+    if (vaccinated_fields.empty()) {
         for (size_t x = 0; x < reader.dimension[1]; x++) {
             for (size_t y = 0; y < reader.dimension[0]; y++) {
                 if (x == 0 or y == 0 or x == reader.dimension[1] - 1 or y == reader.dimension[0] - 1) {
                     if (reader.safe_districts.find(reader.areas[y][x].district) == reader.safe_districts.end()) {
                         possible_choice.insert({y, x});
-                    } else {
+                    }else{
                         possible_districts.insert(reader.areas[y][x].district);
                     }
                 }
@@ -458,9 +465,9 @@ unordered_set<pair<int, int>, pair_hash> Solver::from_reserve() {
         possibilities(possible_choice, possible_districts, clear_szomszedsag);
 
     }
-        //Ha van legalább egy területen tartalék vakcinája az országnak
+    //Ha van legalább egy területen tartalék vakcinája az országnak
     else {
-        for (auto i: possible) {
+        for (auto i: vaccinated_fields) {
             possible_choice.insert(i); // akkor csak ezekre a területekre lehet tenni
             vector<std::pair<int, int>> neighbours = return_nbs(i);
             for (auto nbs : neighbours) {
