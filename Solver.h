@@ -43,6 +43,8 @@ private:
     std::vector<Action> PUT;
 
     unsigned int healing(unsigned int y, unsigned int x);
+    void implement_healing();
+
     unsigned int infection(unsigned int y, unsigned int x);
     static void update_factor(uint32_t&);
     void cleaned_back(); // 3mas pont a második fordulóban
