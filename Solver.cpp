@@ -27,6 +27,7 @@ vector<string> Solver::process(const vector<string> &infos) {
     vector<unordered_set<int>> clean_temp;
     PUT.clear();
     BACK.clear();
+
     // 1) vakcina elhelyezés, csoportosítás
     field_vaccine_history.push_back(tmp);
     clean_nbs_history.push_back(clean_temp);
@@ -302,7 +303,8 @@ void Solver::implement_healing() {
                 ///vakcina miatti gyógyulás
                 //mi van ha a területen nincs is vakcina?? feladatleírás alapján nem egyértelmű ennek a tesztelése
                 if (IR > 0 && n > 0) { //ha előző körben volt fertőzött és vakcina is van -> oltsa be
-                    //std::cout<< "Van " << n << "db vakcina osszesen. ";
+                    std::cout<< "Van " << n << " db vakcina a " << y <<" "<< x << " teruleten osszesen. " <<'\n';
+                    std::cout<< "Nekunk " << reader.areas[y][x].field_vaccine << " db vakcinank van itt." <<'\n';
                     vaccinated_history[reader.data[1]][y][x] = X; // vakcina által mennyi gyógyulás volt a területen
                     reader.areas[y][x].healthRate += X;
                     reader.areas[y][x].infectionRate -= X;
@@ -499,6 +501,7 @@ void Solver::possibilities(const std::unordered_set<int> &possible_districts,
 // hova lehet tenni vakcinát?
 void Solver::from_reserve() {
     possible_choice.clear();
+    vaccinated_fields.clear();
     vector<unordered_set<int>> clear_szomszedsag(szomszedsag.size());
     unordered_set<int> possible_districts;
     DFS(clear_szomszedsag);
