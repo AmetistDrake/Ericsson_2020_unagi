@@ -36,7 +36,22 @@ void Solver::move_vaccine() {
     }
 
 
+    vector<pair<size_t, size_t>> infected_fields = get_infected_fields();
+    while (reader.countries[reader.info.country_id].RV >= 0) {
+        pair<size_t, size_t> selected = nwhere_to_put(..., infected_fields);
+        put(selected);
+    }
+}
 
+vector<pair<size_t, size_t>> Solver::get_infected_fields() {
+    vector<pair<size_t, size_t>> coords;
+    for (size_t x = 0; x < reader.dimension[0]; x++) {
+        for (size_t y = 0; y < reader.dimension[1]; y++) {
+            if (reader.areas[y][x].infectionRate > 0) {
+                coords.emplace_back(y,x);
+            }
+        }
+    }
 }
 
 pair<size_t, size_t> Solver::where_to_put (const vector<pair<size_t,size_t>>& from, const vector<pair<size_t,size_t>>& to){

@@ -37,6 +37,7 @@ private:
     // 1)
     void move_vaccine();
         pair<size_t, size_t> where_to_put(const vector<pair<size_t,size_t>>& from, const vector<pair<size_t,size_t>>& to);
+        vector<pair<size_t, size_t>> get_infected_fields();
 
     // 2)
     void healing();

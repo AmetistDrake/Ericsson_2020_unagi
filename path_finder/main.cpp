@@ -83,12 +83,14 @@ pair<size_t, size_t> where_to_put (const Reader& reader, const vector<pair<size_
 
         for (const auto& coord : to) {
             pair<size_t, size_t> curr_node = coord;
+            cout << "(" << curr_node.first << "," << curr_node.second << ")";
             while (table[curr_node].prev_visited != f)
             {
                 curr_node = table[curr_node].prev_visited;
+                cout << "(" << curr_node.first << "," << curr_node.second << ")";
             }
             possible_coords.push({curr_node, table[coord].dist});
-            // cout << curr_node.first << "," << curr_node.second << " " << table[coord].dist << endl;
+            cout << table[coord].dist << endl;
         }
     }
 
