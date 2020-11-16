@@ -12,11 +12,9 @@ void Solver::healing() {
                 unsigned int IR = infection_rate_history[reader.info.curr_tick - 1][y][x]; //prev InfectionRate
                 unsigned int P = reader.areas[reader.mat2sub(y,x)].population; //start_info
 
-                unsigned int n = 0; //összes ország tartalék vakcinái
+                //összes ország tartalék vakcinái
                 ///A KÖVI 3 SORT KI KELL KOMMENTELNI, HA VAKCINÁZNI AKARUNK!!!
-                for (const auto &a : reader.countries) {
-                    n += a.second.RV;
-                }
+                unsigned int n = reader.areas[reader.mat2sub(y, x)].field_vaccine;
                 //n = reader.sum_of_previous_vaccine_on_areas[y][x];
 
                 unsigned int X = min(n * P, IR); //ennyivel csökken az infection és nő a healthRate vakcinázás után
@@ -26,19 +24,16 @@ void Solver::healing() {
                 ///vakcina miatti gyógyulás
                 //mi van ha a területen nincs is vakcina?? feladatleírás alapján nem egyértelmű ennek a tesztelése
                 if (IR > 0 && n > 0) { //ha előző körben volt fertőzött és vakcina is van -> oltsa be
-                    std::cout<< "Van " << n << " db vakcina a " << y <<" "<< x << " teruleten osszesen. " <<'\n';
                     std::cout<< "Nekunk " << reader.areas[reader.mat2sub(y,x)].field_vaccine << " db vakcinank van itt." <<'\n';
                     vaccinated_history[reader.info.curr_tick][y][x] = X; // vakcina által mennyi gyógyulás volt a területen
                     reader.areas[reader.mat2sub(y,x)].healthRate += X;
                     reader.areas[reader.mat2sub(y,x)].infectionRate -= X;
                     std::cout<< "Vakcina miatt gyogyult ennyivel: " << X <<'\n';
-                    ///tartalék vakcinaszám csökkentése terület és országok szintjén
-                    //reader.areas[y][x].field_vaccine -= m;
+                    reader.areas[reader.mat2sub(y,x)].field_vaccine -= m;
+
+
                     std::cout<< "A tarcsi vakcinaszam ennyivel csokkent: " << m <<'\n';
-                    //reader.sum_of_previous_vaccine_on_areas[y][x] -= m;
-                    /*for (auto a : reader.countries) {
-                        a.second.RV = floor(a.second.RV * (n - m) / n);
-                    }*/
+
                     h = floor(field_healing(y,x) * (IR - X) / IR); //ha van vakcina módosul a visszatérési érték
                 } else {
                     vaccinated_history[reader.info.curr_tick][y][x] = 0; //ha nem vakcináztunk
