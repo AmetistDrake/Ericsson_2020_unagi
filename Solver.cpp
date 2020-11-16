@@ -77,8 +77,8 @@ vector<pair<size_t, size_t>> Solver::get_nbs(size_t y, size_t x) {
     vector<pair<size_t, size_t>> shifts {{-1,0},{1,0},{0,-1},{0,1}};
     for (auto s : shifts) {
         pair<size_t, size_t> nb = {y + s.first, x + s.second};
-        if (nb.first < reader.dimension[0] && nb.first > 0 &&
-                nb.second < reader.dimension[1] && nb.second > 0){
+        if (nb.first < reader.dimension[0] && nb.first >= 0 &&
+                nb.second < reader.dimension[1] && nb.second >= 0){
             nbs.push_back(nb);
         }
     }

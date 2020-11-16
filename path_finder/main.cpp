@@ -87,17 +87,18 @@ vector<pair<size_t, size_t>> where_to_put (const Reader& reader, const vector<pa
                 possible_coords.push(Node_dist(coord, 0));
                 continue;
             }
-            //cout << "(" << curr_node.first << "," << curr_node.second << ")";
+            cout << "(" << curr_node.first << "," << curr_node.second << ")";
             while (table[curr_node].prev_visited != f)
             {
                 curr_node = table[curr_node].prev_visited;
-                //cout << "(" << curr_node.first << "," << curr_node.second << ")";
+                cout << "(" << curr_node.first << "," << curr_node.second << ")";
             }
+            cout << "(" << coord.first << "," << coord.second << ")";
+            cout << table[coord].dist << endl;
             possible_coords.push({curr_node, table[coord].dist});
-            //cout << table[coord].dist << endl;
         }
     }
-    cout << "(" << possible_coords.top().node.first << "," << possible_coords.top().node.second << ") " << possible_coords.top().dist << endl;
+    // cout << "(" << possible_coords.top().node.first << "," << possible_coords.top().node.second << ") " << possible_coords.top().dist << endl;
 
     vector<pair<size_t,size_t>> selected;
     while (!possible_coords.empty()) {
@@ -116,9 +117,9 @@ vector<pair<size_t, size_t>> where_to_put (const Reader& reader, const vector<pa
 }
 
 int main() {
-    vector<vector<size_t>> populations {{1,4,2,3},{2,1,5,2},{4,5,1,3},{2,3,1,1}};
+    vector<vector<size_t>> populations {{5,4,3,3,3,3,4,5,4},{5,4,3,2,1,3,3,5,4},{5,4,3,3,2,3,4,4,4},{5,3,1,2,4,5,4,5,5},{5,3,2,2,4,5,5,5,3}};
     Reader reader;
-    reader.areas.resize(4,vector<Area> (4));
+    reader.areas.resize(populations.size(),vector<Area> (populations[0].size()));
     for (size_t i = 0;i<populations.size();i++){
         for (size_t j = 0; j<populations[i].size();j++){
             reader.areas[i][j].population = populations[i][j];
@@ -131,7 +132,7 @@ int main() {
         cout << endl;
     }
 
-    vector<pair<size_t, size_t>> from {{0,0}, {0, 1}, {2,1}};
+    vector<pair<size_t, size_t>> from {{3,2}, {2, 5}, {0,0}, {-1,-1}};
     vector<pair<size_t, size_t>> to {{2,1},{0,3}};
     where_to_put(reader, from, to);
 

@@ -6,7 +6,7 @@ void Solver::move_vaccine() {
     vector<pair<size_t, size_t>> infected_fields = get_infected_fields();
     vector<pair<size_t, size_t>> starting_fields = get_starting_fields();
     vector<pair<size_t, size_t>> selected = where_to_put(starting_fields, infected_fields);
-    while (reader.countries[reader.info.country_id].RV > 0) {
+    while (!selected.empty() && reader.countries[reader.info.country_id].RV > 0) {
         pair<size_t, size_t> curr = selected.back();
         selected.pop_back();
         size_t amount = vaccine_amount(curr);
@@ -86,8 +86,8 @@ vector<pair<size_t, size_t>> Solver::get_starting_fields (){
 
 vector<pair<size_t, size_t>> Solver::get_infected_fields() {
     vector<pair<size_t, size_t>> coords;
-    for (size_t x = 0; x < reader.dimension[0]; x++) {
-        for (size_t y = 0; y < reader.dimension[1]; y++) {
+    for (size_t x = 0; x < reader.dimension[1]; x++) {
+        for (size_t y = 0; y < reader.dimension[0]; y++) {
             if (reader.areas[y][x].infectionRate > 0) {
                 coords.emplace_back(y,x);
             }
@@ -96,14 +96,23 @@ vector<pair<size_t, size_t>> Solver::get_infected_fields() {
     return coords;
 }
 
-vector<pair<size_t, size_t>> Solver::where_to_put (const vector<pair<size_t,size_t>>& from, const vector<pair<size_t,size_t>>& to){
-//
-//    vector<pair<size_t, size_t>> from;
-//    vector<pair<size_t, size_t>> to;
-//
-//    from.push_back(from1.back());
-//    to.push_back(to1.back());
-//
+vector<pair<size_t, size_t>> Solver::where_to_put (const vector<pair<size_t,size_t>>& from1, const vector<pair<size_t,size_t>>& to1){
+
+    vector<pair<size_t, size_t>> from;
+    vector<pair<size_t, size_t>> to;
+
+    for(auto f : from1) {
+        cout << "(" << f.first << "," << f.second << ")";
+    }
+    cout << endl;
+    for(auto f : to1) {
+        cout << "(" << f.first << "," << f.second << ")";
+    }
+    cout << endl;
+
+    from.push_back({23,21});
+    to.push_back({17, 14});
+
 
     struct Props {
         size_t dist = std::numeric_limits<size_t>::max();
