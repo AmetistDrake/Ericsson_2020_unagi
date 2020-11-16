@@ -8,10 +8,9 @@ void Solver::vaccine_production() {
     unsigned int minus_val = 0;
 
 
-    for (auto clean: reader.safe_districts) {
             for (size_t x = 0; x < reader.dimension[1]; x++) {
                 for (size_t y = 0; y < reader.dimension[0]; y++) {
-                if (reader.areas[reader.mat2sub(y,x)].district == clean.first) {
+                if (reader.safe_districts.find(reader.areas[reader.mat2sub(y,x)].district) != reader.safe_districts.end()) {
                     vector<std::pair<size_t, size_t>> neighbours = get_nbs(y, x);
                     for (auto nbs : neighbours) {
                         if (reader.safe_districts.find(reader.areas[reader.mat2sub(nbs.first,nbs.second)].district) ==
@@ -24,7 +23,7 @@ void Solver::vaccine_production() {
                 }
             }
         }
-    }
+
     int value = 2 * sum_of_areas - ceil(minus_val / 3);
     if (value < (0 - reader.info.TPC_0)) {
         value = 0;
