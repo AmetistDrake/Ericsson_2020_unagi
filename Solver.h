@@ -7,11 +7,17 @@
 #include <unordered_set>
 #include <fstream>
 #include <filesystem>
+#include <queue>
 
-struct pair_hash {
+/*struct pair_hash {
   inline std::size_t operator()(const std::pair<int,int> & v) const {
     return v.first*31+v.second;
   }
+};*/
+struct pair_hash {
+    inline int operator()(const std::pair<int, int>& coord) const {
+        return coord.first*31+coord.second;
+    }
 };
 
 class Solver {
@@ -54,6 +60,7 @@ private:
     void back(const Action &temp);
     void put(const Action &temp);
     void from_reserve();
+    std::pair<int, int>  where_to_put (const std::unordered_set<std::pair<int,int>, pair_hash>& from, const std::unordered_set<std::pair<int,int>, pair_hash>& to);
     void district_areas();
     void DFS(std::vector<std::unordered_set<int>> &clear_szomszedsag);
     void upload_nbs();

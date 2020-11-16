@@ -25,7 +25,8 @@ vector<string> Solver::process(const vector<string> &infos) {
 
     vector<vector<unsigned int>> tmp(reader.dimension[0], vector<unsigned int>(reader.dimension[1], 0));
     vector<unordered_set<int>> clean_temp;
-
+    PUT.clear();
+    BACK.clear();
     // 1) vakcina elhelyezés, csoportosítás
     field_vaccine_history.push_back(tmp);
     clean_nbs_history.push_back(clean_temp);
@@ -62,7 +63,7 @@ vector<string> Solver::process(const vector<string> &infos) {
         }
     }
 
-    from_reserve();  //visszaad egy unordered_set<pair<int, int>, pair_hash> -et amiben a lehetséges területek vannak, ahova vakcinát lehet tenni
+     //visszaad egy unordered_set<pair<int, int>, pair_hash> -et amiben a lehetséges területek vannak, ahova vakcinát lehet tenni
     //minden letétel után meg kell nézni az új lehetséges területeket
     bool enough_vaccine;
     if (reader.countries[reader.data[2]].RV > 0) {
@@ -72,44 +73,55 @@ vector<string> Solver::process(const vector<string> &infos) {
     }
 
     while (enough_vaccine) {
+        from_reserve();
         pair<unsigned int, unsigned int> c = where_to_put(possible_choice, fields_to_vaccinate);
+        cout <<"A hely ahova tenni szeretnenk : " << c.first << "  " << c.second << endl;
         Action temp{};
         temp.y = c.first;
         temp.x = c.second;
         if (reader.areas[c.first][c.second].infectionRate == 0) { //ha tiszta terület
+            cout << "tiszta" << endl;
             if (reader.areas[c.first][c.second].field_vaccine == 0) { //és még nincs rajta vakcina akkor minimum megy rá
                 int min_vaccine = 6 - reader.areas[c.first][c.second].population;
                 if (reader.countries[reader.data[2]].RV >= min_vaccine) {
                     temp.val = min_vaccine;
                     put(temp);
+                    possible_choice.erase(c);
                 } else {
                     enough_vaccine = false;
                 }
             }
             if (enough_vaccine) {
-                possible_choice.insert({c.first, c.second});
+                //possible_choice.insert({c.first, c.second});
                 std::vector<std::pair<int, int>> neighbours =return_nbs({c.first, c.second});
                 for(auto nbs:neighbours){
                     if(reader.safe_districts.find(reader.areas[nbs.first][nbs.second].district) == reader.safe_districts.end()){
-                        possible_choice.insert(nbs);
+                        //possible_choice.insert(nbs);
                     }
                 }
             }
         }
         else {// ha fertőzött területen vagyunk
-            int needed_vaccine = reader.areas[c.first][c.second].infectionRate - healing_history[reader.data[1]][c.first][c.second];
+            cout << " fertozott " << endl;
+            int needed_vaccine = reader.areas[c.first][c.second].infectionRate ;//ez egy naaagy becsles
+            //cout << needed_vaccine << endl;
             if (needed_vaccine < 0) { needed_vaccine = 0; }
+            if (needed_vaccine <6- reader.areas[c.first][c.second].population) { needed_vaccine = 6- reader.areas[c.first][c.second].population; }
             if (reader.countries[reader.data[2]].RV >= needed_vaccine) { // ha van elég vakcina
+                cout << "van eleg vakcina" << endl;
                 temp.val = needed_vaccine;
                 put(temp);
-                fields_to_vaccinate.erase({c.first, c.second});
-            } else {
+                fields_to_vaccinate.erase(c);
+                possible_choice.erase(c);
+            }
+            else {
+                cout << "nincs eleg vakcina" << endl;
                 temp.val = reader.countries[reader.data[2]].RV;
                 put(temp);
                 enough_vaccine = false;
             }
         }
-
+enough_vaccine = false;
     }
 
 
@@ -523,8 +535,12 @@ void Solver::from_reserve() {
     }
         //Ha van legalább egy területen tartalék vakcinája az országnak
     else {
+        cout << " MAR VAN VAKCINAAAA " << endl;
         for (auto i: vaccinated_fields) {
-            possible_choice.insert(i); // akkor csak ezekre a területekre lehet tenni
+            if(reader.safe_districts.find(reader.areas[i.first][i.second].district) == reader.safe_districts.end()){
+                possible_choice.insert(i); // akkor csak ezekre a területekre lehet tenni
+            }
+
             vector<std::pair<int, int>> neighbours = return_nbs(i);
             for (auto nbs : neighbours) {
                 if (reader.safe_districts.find(reader.areas[nbs.first][nbs.second].district) ==

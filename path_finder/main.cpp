@@ -13,39 +13,39 @@ struct Reader {
     vector<vector<Area>> areas;
 };
 
-pair<size_t, size_t> wheretoput (const Reader& reader, const vector<pair<size_t,size_t>>& from, const vector<pair<size_t,size_t>>& to){
+pair<int, int> where_to_put (const Reader& reader, const vector<pair<int,int>>& from, const vector<pair<int,int>>& to){
     struct Props {
-        size_t dist = std::numeric_limits<int>::max();
-        pair<size_t,size_t> prev_visited {};
+        int dist = std::numeric_limits<int>::max();
+        pair<int,int> prev_visited {};
         bool is_visited = false;
     };
 
     struct Node_dist {
-        pair<size_t, size_t> node;
-        size_t dist {};
+        pair<int, int> node;
+        int dist {};
 
         Node_dist() = default;
-        Node_dist(pair<size_t, size_t> n, size_t d) : node(std::move(n)), dist(d) {};
+        Node_dist(pair<int, int> n, int d) : node(std::move(n)), dist(d) {};
         bool operator <(const Node_dist& other) const {
             return other.dist < dist; // azért van fordítva, hogy a queue csökkenőbe rendezzen, és a top() a legkisebb elem legyen
         }
     };
-
+/*
     struct pair_hash {
         inline std::size_t operator()(const pair<size_t, size_t>& coord) const {
             return coord.first*31+coord.second;
         }
     };
-
-    unordered_map<pair<size_t,size_t>, Props, pair_hash> table;
+*/
+    unordered_map<pair<int,int>, Props, pair_hash> table;
     priority_queue<Node_dist> q;
 
     priority_queue<Node_dist> possible_coords;
 
     for (auto f: from) {
-        for (size_t i = 0; i < reader.areas.size(); i++) {
-            for (size_t j = 0; j < reader.areas[i].size(); j++) {
-                pair<size_t, size_t> coord {i, j}; // koordináták oszlopfolytonosan
+        for (int i = 0; i < reader.areas.size(); i++) {
+            for (int j = 0; j < reader.areas[i].size(); j++) {
+                pair<int, int> coord {i, j}; // koordináták oszlopfolytonosan
                 Props props;
                 table[coord] = props;
 
@@ -61,10 +61,10 @@ pair<size_t, size_t> wheretoput (const Reader& reader, const vector<pair<size_t,
             curr = q.top();
             q.pop();
             table[curr.node].is_visited = true;
-            vector<pair<size_t,size_t>> shifts {{-1,0},{1,0},{0,-1},{0,1}};
+            vector<pair<int,int>> shifts {{-1,0},{1,0},{0,-1},{0,1}};
 
             for (auto shift : shifts) {
-                pair<size_t, size_t> nb {curr.node.first+shift.first, curr.node.second+shift.second};
+                pair<int, int> nb {curr.node.first+shift.first, curr.node.second+shift.second};
                 if (nb.first >= 0 && nb.first < reader.areas[0].size()
                 && nb.second >= 0 && nb.second < reader.areas.size()) {
                     if (!table[nb].is_visited) {
@@ -82,7 +82,7 @@ pair<size_t, size_t> wheretoput (const Reader& reader, const vector<pair<size_t,
 //        }
 
         for (const auto& coord : to) {
-            pair<size_t, size_t> curr_node = coord;
+            pair<int, int> curr_node = coord;
             while (table[curr_node].prev_visited != f)
             {
                 curr_node = table[curr_node].prev_visited;
