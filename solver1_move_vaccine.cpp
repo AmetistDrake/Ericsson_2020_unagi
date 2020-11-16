@@ -6,7 +6,7 @@ void Solver::move_vaccine() {
 
 }
 
-pair<size_t, size_t> where_to_put (const Reader& reader, const vector<pair<size_t,size_t>>& from, const vector<pair<size_t,size_t>>& to){
+pair<size_t, size_t> Solver::where_to_put (const vector<pair<size_t,size_t>>& from, const vector<pair<size_t,size_t>>& to){
     struct Props {
         size_t dist = std::numeric_limits<size_t>::max();
         pair<size_t,size_t> prev_visited {};
