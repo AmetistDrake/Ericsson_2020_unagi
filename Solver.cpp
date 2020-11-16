@@ -291,10 +291,10 @@ void Solver::implement_healing() {
 
                 unsigned int n = 0; //összes ország tartalék vakcinái
                 ///A KÖVI 3 SORT KI KELL KOMMENTELNI, HA VAKCINÁZNI AKARUNK!!!
-                /*for (const auto &a : reader.countries) {
+                for (const auto &a : reader.countries) {
                    n += a.second.RV;
-                }*/
-                n = reader.sum_of_previous_vaccine_on_areas[y][x];
+                }
+                //n = reader.sum_of_previous_vaccine_on_areas[y][x];
 
                 unsigned int X = min(n * P, IR); //ennyivel csökken az infection és nő a healthRate vakcinázás után
                 int m = ceil(X / P); //ennyivel csökken a tartalék vakcinaszám az adott területen
@@ -308,9 +308,10 @@ void Solver::implement_healing() {
                     vaccinated_history[reader.data[1]][y][x] = X; // vakcina által mennyi gyógyulás volt a területen
                     reader.areas[y][x].healthRate += X;
                     reader.areas[y][x].infectionRate -= X;
-
+                    std::cout<< "Vakcina miatt gyogyult ennyivel: " << X <<'\n';
                     ///tartalék vakcinaszám csökkentése terület és országok szintjén
-                    reader.areas[y][x].field_vaccine -= m;
+                    //reader.areas[y][x].field_vaccine -= m;
+                    std::cout<< "A tarcsi vakcinaszam ennyivel csokkent: " << m <<'\n';
                     //reader.sum_of_previous_vaccine_on_areas[y][x] -= m;
                     /*for (auto a : reader.countries) {
                         a.second.RV = floor(a.second.RV * (n - m) / n);

@@ -19,7 +19,7 @@ struct Area {
     unsigned int infectionRate;
     unsigned int healthRate;
     unsigned int population;
-    unsigned int field_vaccine;
+    int field_vaccine;
     Area * left, *right, *up, *down;
 };
 
