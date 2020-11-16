@@ -8,6 +8,7 @@ void Solver::vaccine_production() {
     unsigned int minus_val = 0;
 
 
+    for (auto clean: reader.safe_districts) {
             for (size_t x = 0; x < reader.dimension[1]; x++) {
                 for (size_t y = 0; y < reader.dimension[0]; y++) {
                 if (reader.safe_districts.find(reader.areas[reader.mat2sub(y,x)].district) != reader.safe_districts.end()) {

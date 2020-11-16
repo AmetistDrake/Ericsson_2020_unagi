@@ -4,56 +4,60 @@
 
 using namespace std;
 
-void write_json_vv(ofstream& kf, const Reader& reader, const string& what) {
-    kf << "\t\"" + what + "\" : [";
-    for (size_t y = 0; y < reader.dimension[0]; y++) {
+void write_json_vv (ofstream& kf, const Reader& reader, const string& what) {
+    kf << "\t\""+ what +"\" : [";
+    for (size_t i = 0; i < reader.areas.size(); i++) {
         kf << "[";
-        for (size_t x = 0; x < reader.dimension[1]; x++) {
+        for(size_t j = 0; j < reader.areas[i].size(); j++) {
             if (what == "population") {
-                if (x == reader.dimension[1] - 1) {
-                    kf << to_string(reader.areas[reader.mat2sub(y,x)].population);
-                } else {
-                    kf << to_string(reader.areas[reader.mat2sub(y,x)].population) << ", ";
+                if (j == reader.areas[i].size()-1) {
+                    kf << to_string(reader.areas[i][j].population);
                 }
-            } else if (what == "district") {
-                if (x == reader.dimension[1] - 1) {
-                    kf << to_string(reader.areas[reader.mat2sub(y,x)].district);
-                } else {
-                    kf << to_string(reader.areas[reader.mat2sub(y,x)].district) << ", ";
+                else {
+                    kf << to_string(reader.areas[i][j].population) << ", ";
+                }
+            }
+            else if (what == "district") {
+                if (j == reader.areas[i].size()-1) {
+                    kf << to_string(reader.areas[i][j].district);
+                }
+                else {
+                    kf << to_string(reader.areas[i][j].district) << ", ";
                 }
             }
         }
-        if (y == reader.dimension[0] - 1) {
+        if (i == reader.areas.size()-1) {
             kf << "]";
-        } else {
+        }else {
             kf << "], ";
         }
     }
     kf << "],\n";
 }
 
-void write_json_vvv(ofstream& kf, const vector<vector<vector<size_t>>>& data, const string& what) {
-    kf << "\t\"" + what + "\" : [";
+void write_json_vvv (ofstream& kf, const vector<vector<vector<size_t>>>& data, const string& what) {
+    kf << "\t\""+ what +"\" : [";
     for (size_t i = 0; i < data.size(); i++) {
         kf << "[";
-        for (size_t y = 0; y < data[i].size(); y++) {
+        for(size_t j = 0; j < data[i].size(); j++) {
             kf << "[";
-            for (size_t x = 0; x < data[i][y].size(); x++) {
-                if (x == data[i][y].size() - 1) {
-                    kf << to_string(data[i][y][x]);
-                } else {
-                    kf << to_string(data[i][y][x]) << ", ";
+            for (size_t k = 0; k < data[i][j].size(); k++) {
+                if (k == data[i][j].size()-1) {
+                    kf << to_string(data[i][j][k]);
+                }
+                else {
+                    kf << to_string(data[i][j][k]) << ", ";
                 }
             }
-            if (y == data[i].size() - 1) {
+            if (j == data[i].size()-1) {
                 kf << "]";
-            } else {
+            }else {
                 kf << "], ";
             }
         }
-        if (i == data.size() - 1) {
+        if (i == data.size()-1) {
             kf << "]";
-        } else {
+        }else {
             kf << "], ";
         }
     }
@@ -64,22 +68,24 @@ void Solver::create_json_from_data() {
     ofstream kf;
     string path_str = "../displays/json_files/";
     filesystem::path path = path_str;
-    if (!filesystem::exists(path)) {
+    if (!filesystem::exists(path))
+    {
         filesystem::create_directories(path);
     }
     kf.open(path_str + to_string(reader.info.game_id) + ".json");
     kf << "{\n";
 
-    kf << "\t\"N\" : " << to_string(reader.dimension[0]) << ",\n";
-    kf << "\t\"M\" : " << to_string(reader.dimension[1]) << ",\n";
-    kf << "\t\"num_of_countries\" : " << to_string(reader.info.countries_count) << ",\n";
-    kf << "\t\"country_id\" : " << to_string(reader.info.country_id) << ",\n";
-    kf << "\t\"max_tick\" : " << to_string(reader.info.max_tick) << ",\n";
+    kf << "\t\"N\" : " << to_string(reader.dimension[1]) <<",\n";
+    kf << "\t\"M\" : " << to_string(reader.dimension[0]) <<",\n";
+    kf << "\t\"num_of_countries\" : " << to_string(reader.info.countries_count) <<",\n";
+    kf << "\t\"country_id\" : " << to_string(reader.info.country_id) <<",\n";
+    kf << "\t\"max_tick\" : " << to_string(reader.info.max_tick) <<",\n";
     kf << "\t\"RV\" : [";
     for (size_t i = 0; i < RV_history.size(); i++) {
-        if (i == RV_history.size() - 1) {
+        if (i == RV_history.size()-1) {
             kf << to_string(RV_history[i]);
-        } else {
+        }
+        else {
             kf << to_string(RV_history[i]) << ", ";
         }
     }
@@ -87,47 +93,51 @@ void Solver::create_json_from_data() {
 
     kf << "\t\"TPC\" : [";
     for (size_t i = 0; i < TPC_history.size(); i++) {
-        if (i == TPC_history.size() - 1) {
+        if (i == TPC_history.size()-1) {
             kf << to_string(TPC_history[i]);
-        } else {
+        }
+        else {
             kf << to_string(TPC_history[i]) << ", ";
         }
     }
     kf << "],\n";
 
-    kf << "\t\"clean_groups\" : [";
-    for (size_t i = 0; i < clean_groups_history.size(); i++) { // tick
+    kf << "\t\"clean_nbs\" : [";
+    for (size_t i = 0; i < clean_groups_history.size();i++){ // tick
         kf << "[";
-        for (size_t j = 0; j < clean_groups_history[i].size(); j++) { // group
+        for (size_t j = 0; j < clean_groups_history[i].size(); j++) { // kerületek halmaza
             kf << "[";
-            int num = 0;
-            for (const auto& distr : clean_groups_history[i][j]) {  // district
+            size_t num = 0;
+            for (const auto& distr : clean_groups_history[i][j]) {  // kerület
                 num++;
                 if (num != clean_groups_history[i][j].size()) {
                     for (auto coord : reader.districts[distr]) { // terület
                         kf << "[" << to_string(coord.first) + ", " << to_string(coord.second) << "], ";
                     }
-                } else {
-                    int num2 = 0;
+                }
+                else {
+                    size_t num2 = 0;
                     for (auto coord : reader.districts[distr]) { // terület
                         num2++;
                         if (num2 != reader.districts[distr].size()) {
                             kf << "[" << to_string(coord.first) + ", " << to_string(coord.second) << "], ";
-                        } else {
+                        }
+                        else {
                             kf << "[" << to_string(coord.first) + ", " << to_string(coord.second) << "]";
                         }
                     }
                 }
             }
-            if (j == clean_groups_history[i].size() - 1) {
+            if (j == clean_groups_history[i].size()-1) {
                 kf << "]";
-            } else {
+            }
+            else {
                 kf << "], ";
             }
         }
-        if (i == clean_groups_history.size() - 1) {
+        if (i == clean_groups_history.size()-1) {
             kf << "]";
-        } else {
+        }else {
             kf << "], ";
         }
     }
@@ -146,18 +156,20 @@ void Solver::create_json_from_data() {
     kf << "\t\"messages\" : [";
     for (size_t i = 0; i < msg_history.size(); i++) {
         kf << "[";
-        for (size_t j = 0; j < msg_history[i].size(); j++) {
+        for(size_t j = 0; j < msg_history[i].size(); j++) {
             if (j == 0) {
                 kf << "\"" << msg_history[i][j] << "<br/>";
-            } else if (j == msg_history[i].size() - 1) {
+            }
+            else if (j == msg_history[i].size()-1) {
                 kf << msg_history[i][j] << "\"";
-            } else {
+            }
+            else {
                 kf << msg_history[i][j] << "\\n";
             }
         }
-        if (i == msg_history.size() - 1) {
+        if (i == msg_history.size()-1) {
             kf << "]";
-        } else {
+        }else {
             kf << "], ";
         }
     }

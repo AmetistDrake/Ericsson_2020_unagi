@@ -41,7 +41,7 @@ public:
     Info info{};
     array<uint32_t, 4> factors{};
     array<unsigned short, 2> dimension{};
-    vector<Area> areas{};
+    vector<vector<Area>> areas{};
     string message{};
     bool hasEnd = false;
     bool needAnsw = true;
@@ -53,14 +53,7 @@ public:
     Reader() = default;
     void readDataConsole();
     void readDataInfo(const vector<string>& infos);
-    [[nodiscard]] size_t mat2sub (const size_t& y, const size_t& x) const {
-        return y*dimension[1]+x;
-    }
-    [[nodiscard]] pair<size_t, size_t> sub2mat (const size_t& z) const {
-        size_t x = z % dimension[1];
-        size_t y = (z-x) / dimension[1];
-        return {y,x};
-    }
+
 private:
     bool readHelperFunc(string& line);
 };

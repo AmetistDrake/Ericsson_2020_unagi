@@ -6,18 +6,18 @@ void Solver::infection() {
     for (size_t x = 0; x < reader.dimension[1]; x++) {
         for (size_t y = 0; y < reader.dimension[0]; y++) {
             if (reader.info.curr_tick == 0) {
-                if (reader.areas[reader.mat2sub(y,x)].infectionRate > 0) {
+                if (reader.areas[y][x].infectionRate > 0) {
                     infection_history[0][y][x] = 1;
                 }
-            } else if (reader.safe_districts.find(reader.areas[reader.mat2sub(y,x)].district) ==
+            } else if (reader.safe_districts.find(reader.areas[y][x].district) ==
                        reader.safe_districts.end()) { // ha tiszta kerületek között nincs, akkor van infection
                 size_t inf = field_infection(y, x);
-                if ((inf + reader.areas[reader.mat2sub(y,x)].healthRate + reader.areas[reader.mat2sub(y,x)].infectionRate) > 100) {
-                    inf = 100 - reader.areas[reader.mat2sub(y,x)].healthRate - reader.areas[reader.mat2sub(y,x)].infectionRate;
+                if ((inf + reader.areas[y][x].healthRate + reader.areas[y][x].infectionRate) > 100) {
+                    inf = 100 - reader.areas[y][x].healthRate - reader.areas[y][x].infectionRate;
                 }
 
                 infection_history[reader.info.curr_tick][y][x] = inf;
-                reader.areas[reader.mat2sub(y,x)].infectionRate += inf;
+                reader.areas[y][x].infectionRate += inf;
             }
         }
     }
@@ -49,15 +49,15 @@ size_t Solver::field_infection(size_t y, size_t x) {
 
         // dist kiszámítása
         size_t dist; // távolság {0,...2] közül valami
-        if (reader.areas[reader.mat2sub(y,x)].district !=
-            reader.areas[reader.mat2sub(nbs.first,nbs.second)].district) { dist = 2; } // különböző kerületben vannak
+        if (reader.areas[y][x].district !=
+            reader.areas[nbs.first][nbs.second].district) { dist = 2; } // különböző kerületben vannak
         else if (y != unsigned(nbs.first) or x != unsigned(nbs.second)) { dist = 1; } // azonos kerületben vannak
         else { dist = 0; } // a terület önmaga
 
         // sum_infection_rate kiszámítása a szomszédos fertőző területek népessége alapján, ha eléggé fertőzőek voltak előző körben
         if (infection_rate_history[curr_tick - 1][nbs.first][nbs.second] > t * dist) {
             size_t population_diff =
-                    clamp(int(reader.areas[reader.mat2sub(y,x)].population - reader.areas[reader.mat2sub(nbs.first,nbs.second)].population), 0, 2) +
+                    clamp(int(reader.areas[y][x].population - reader.areas[nbs.first][nbs.second].population), 0, 2) +
                     1;
 
             // helyek populációs különbsége: {1,...3} közül valami

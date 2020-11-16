@@ -22,12 +22,12 @@ bool Reader::readHelperFunc(string& line) {
         stringstream(move(line).substr(8)) >> factors[0] >> factors[1] >> factors[2] >> factors[3];
     } else if (!line.rfind("FIELDS", 0)) {
         stringstream(move(line).substr(7)) >> dimension[0] >> dimension[1]; // dimension[0] = rows = N, dimension[1] = cols = M
-        areas.resize(dimension[0]*dimension[1], Area());
+        areas.resize(dimension[0], vector<Area>(dimension[1],Area()));
     } else if (!line.rfind("FD", 0)) {
         stringstream ss(move(line).substr(3));
         size_t y, x;
         ss >> y >> x;
-        Area& a = areas[y*dimension[1]+x];
+        Area& a = areas[y][x];
         a.x = x;
         a.y = y;
         ss >> a.district >> a.infectionRate >> a.population;
