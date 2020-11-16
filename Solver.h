@@ -1,75 +1,68 @@
 #ifndef SOCKET_CONNECTOR_SOLVER_H
 #define SOCKET_CONNECTOR_SOLVER_H
 
+#include "Reader.h"
 #include <iostream>
 #include <vector>
-#include "Reader.h"
-#include <unordered_set>
 #include <fstream>
 #include <filesystem>
 #include <queue>
+#include <sstream>
+#include <cmath>
+#include <algorithm>
 
-/*struct pair_hash {
-  inline std::size_t operator()(const std::pair<int,int> & v) const {
-    return v.first*31+v.second;
-  }
-};*/
-struct pair_hash {
-    inline int operator()(const std::pair<int, int>& coord) const {
-        return coord.first*31+coord.second;
-    }
-};
+using namespace std;
 
 class Solver {
 private:
     Reader reader;
     struct Action {
-        unsigned int y,x,val;
+        size_t y,x,val;
     };
+    
+    vector<vector<vector<size_t>>> infection_history;
+    vector<vector<vector<size_t>>> healing_history; // magától mennyi gyógyulás volt a területen
+    vector<vector<vector<size_t>>> infection_rate_history;
+    vector<vector<vector<size_t>>> health_rate_history;
+    vector<vector<vector<size_t>>> vaccinated_history;  //vakcina által mennyi gyógyulás volt a területen
+    vector<vector<vector<size_t>>> field_vaccine_history;  //mennyi vakcinát tettünk le a területre
+    vector<vector<vector<size_t>>> clean_groups_history; // tick, group, district
+    vector<vector<string>> msg_history; // a kiírt válaszunk körönként
+    vector<int> TPC_history;
+    vector<int> RV_history;
 
-    std::vector<std::vector<std::vector<unsigned int>>> infection_history;
-    std::vector<std::vector<std::vector<unsigned int>>> healing_history; // magától mennyi gyógyulás volt a területen
-    std::vector<std::vector<std::vector<unsigned int>>> infection_rate_history;
-    std::vector<std::vector<std::vector<unsigned int>>> health_rate_history;
-    std::vector<std::vector<std::vector<unsigned int>>> vaccinated_history;  //vakcina által mennyi gyógyulás volt a területen
-    std::vector<std::vector<std::vector<unsigned int>>> field_vaccine_history;  //mennyi vakcinát tettünk le a területre
-    std::vector<std::vector<std::unordered_set<int>>> clean_nbs_history;
-    std::unordered_set<std::pair<int, int>, pair_hash> possible_choice;
-    std::vector<std::vector<std::string>> msg_history; // a kiírt válaszunk körönként
-    std::vector<int> TPC_history;
-    std::vector<int> RV_history;
-    int TPC_0;
+    vector<Action> BACK;
+    vector<Action> PUT;
 
-    std::vector<std::unordered_set<std::pair<int, int>, pair_hash>> keruletek;
-    std::vector<std::unordered_set<int>> szomszedsag;
+    // 1)
+    void move_vaccine();
 
-    std::unordered_set<std::pair<int, int>, pair_hash> vaccinated_fields; //Dijkstra start: területek amiken van vakcina
-    std::unordered_set<std::pair<int, int>, pair_hash> fields_to_vaccinate; //Dijkstra cél: fertőzött terület, de nincs rajta vakcina
+    // 2)
+    void healing();
+        size_t field_healing(size_t, size_t);
 
-    std::vector<Action> BACK;
-    std::vector<Action> PUT;
+    // 3)
+    void cleaned_back();
 
-    unsigned int healing(unsigned int y, unsigned int x);
-    void implement_healing();
+    // 4)
+    void infection();
+        size_t field_infection(size_t y, size_t x);
 
-    unsigned int infection(unsigned int y, unsigned int x);
-    static void update_factor(uint32_t&);
-    void cleaned_back(); // 3mas pont a második fordulóban
-    void answer_msg(std::vector<std::string>&);
+    // 5)
     void vaccine_production();
-    void back(const Action &temp);
-    void put(const Action &temp);
-    void from_reserve();
-    std::pair<int, int>  where_to_put (const std::unordered_set<std::pair<int,int>, pair_hash>& from, const std::unordered_set<std::pair<int,int>, pair_hash>& to);
-    void district_areas();
-    void DFS(std::vector<std::unordered_set<int>> &clear_szomszedsag);
-    void upload_nbs();
-    std::vector<std::pair<int, int>> return_nbs(const std::pair<int, int > &koord);
-    void possibilities( const std::unordered_set<int> &possible_districts, const std::vector<std::unordered_set<int>> &clear_szomszedsag);
+    
+    static void update_factor(uint32_t&);
+    vector<pair<size_t,size_t>> get_nbs(size_t, size_t);
+    
+    
+    void back(const Action &);
+    void put(const Action &);
+    void answer_msg(vector<string>&);
+
 public:
     Solver();
     ~Solver();
-    std::vector<std::string> process(const std::vector<std::string>& infos);
+    vector<string> process(const vector<string>& infos);
     void create_json_from_data();
 };
 
