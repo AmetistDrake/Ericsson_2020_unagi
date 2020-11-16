@@ -62,7 +62,7 @@ vector<string> Solver::process(const vector<string> &infos) {
         }
     }
 
-    //from_reserve();  visszaad egy unordered_set<pair<int, int>, pair_hash> -et amiben a lehetséges területek vannak, ahova vakcinát lehet tenni
+    from_reserve();  //visszaad egy unordered_set<pair<int, int>, pair_hash> -et amiben a lehetséges területek vannak, ahova vakcinát lehet tenni
     //minden letétel után meg kell nézni az új lehetséges területeket
     bool enough_vaccine;
     if (reader.countries[reader.data[2]].RV > 0) {
@@ -88,6 +88,12 @@ vector<string> Solver::process(const vector<string> &infos) {
             }
             if (enough_vaccine) {
                 possible_choice.insert({c.first, c.second});
+                std::vector<std::pair<int, int>> neighbours =return_nbs({c.first, c.second});
+                for(auto nbs:neighbours){
+                    if(reader.safe_districts.find(reader.areas[nbs.first][nbs.second].district) == reader.safe_districts.end()){
+                        possible_choice.insert(nbs);
+                    }
+                }
             }
         }
         else {// ha fertőzött területen vagyunk
