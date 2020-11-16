@@ -293,6 +293,7 @@ void Solver::implement_healing() {
                 /*for (const auto &a : reader.countries) {
                    n += a.second.RV;
                 }*/
+                n = reader.sum_of_previous_vaccine_on_areas[y][x];
 
                 unsigned int X = min(n * P, IR); //ennyivel csökken az infection és nő a healthRate vakcinázás után
                 int m = ceil(X / P); //ennyivel csökken a tartalék vakcinaszám az adott területen
@@ -300,8 +301,7 @@ void Solver::implement_healing() {
 
                 ///vakcina miatti gyógyulás
                 //mi van ha a területen nincs is vakcina?? feladatleírás alapján nem egyértelmű ennek a tesztelése
-                if (IR > 0 && n > 0 && reader.sum_of_previous_vaccine_on_areas[y][x] >
-                                       0) { //ha előző körben volt fertőzött és vakcina is van -> oltsa be
+                if (IR > 0 && n > 0) { //ha előző körben volt fertőzött és vakcina is van -> oltsa be
                     //std::cout<< "Van " << n << "db vakcina osszesen. ";
                     vaccinated_history[reader.data[1]][y][x] = X; // vakcina által mennyi gyógyulás volt a területen
                     reader.areas[y][x].healthRate += X;
@@ -309,9 +309,10 @@ void Solver::implement_healing() {
 
                     ///tartalék vakcinaszám csökkentése terület és országok szintjén
                     reader.areas[y][x].field_vaccine -= m;
-                    for (auto a : reader.countries) {
+                    //reader.sum_of_previous_vaccine_on_areas[y][x] -= m;
+                    /*for (auto a : reader.countries) {
                         a.second.RV = floor(a.second.RV * (n - m) / n);
-                    }
+                    }*/
                     h = floor(healing(y, x) * (IR - X) / IR); //ha van vakcina módosul a visszatérési érték
                 } else {
                     vaccinated_history[reader.data[1]][y][x] = 0; //ha nem vakcináztunk
