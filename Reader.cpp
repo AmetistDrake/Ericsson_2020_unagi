@@ -11,43 +11,43 @@ bool Reader::readHelperFunc(std::string& line) {
         !line.rfind("SUCCESS", 0) ||
         !line.rfind("FAILED", 0)) {
         hasEnd = true;
-        message = std::move(line);
+        message = move(line);
     } else if (!line.rfind("REQ", 0)) {
         needAnsw = true;
-        std::stringstream(std::move(line).substr(4)) >> data[0] >> data[1] >> data[2];
+        stringstream(move(line).substr(4)) >> info.game_id >> info.curr_tick >> info.country_id;
     } else if (!line.rfind("START", 0)) {
         needAnsw = false;
-        std::stringstream(std::move(line).substr(6)) >> data[0] >> max_tick >> countries_count;
+        stringstream(move(line).substr(6)) >> info.game_id >> info.max_tick >> info.countries_count;
     } else if (!line.rfind("FACTORS", 0)) {
-        std::stringstream(std::move(line).substr(8)) >> factors[0] >> factors[1] >> factors[2] >> factors[3];
+        stringstream(move(line).substr(8)) >> factors[0] >> factors[1] >> factors[2] >> factors[3];
     } else if (!line.rfind("FIELDS", 0)) {
-        std::stringstream(std::move(line).substr(7)) >> dimension[0] >> dimension[1];
-        areas.resize(dimension[0], std::vector<Area>{dimension[1]});
-        sum_of_previous_vaccine_on_areas.resize(dimension[0], std::vector<int>{dimension[1]});
-        vaccinated.resize(dimension[0], std::vector<int>{dimension[1]});
+        stringstream(move(line).substr(7)) >> dimension[0] >> dimension[1]; // dimension[0] = rows = N, dimension[1] = cols = M
+        areas.resize(dimension[0]*dimension[1], Area());
     } else if (!line.rfind("FD", 0)) {
-        std::stringstream ss(std::move(line).substr(3));
-        std::size_t y, x;
+        stringstream ss(move(line).substr(3));
+        size_t y, x;
         ss >> y >> x;
-        Area& a = areas[y][x];
+        Area a = areas[y*dimension[1]+x];
+        a.x = x;
+        a.y = y;
         ss >> a.district >> a.infectionRate >> a.population;
+        districts[a.district].push_back({y,x});
     } else if (!line.rfind("VAC", 0)) {
-        std::stringstream ss(std::move(line).substr(4));
-        std::size_t y, x;
+        stringstream ss(move(line).substr(4));
+        size_t y, x;
         ss >> y >> x;
-        int &a = sum_of_previous_vaccine_on_areas[y][x];
-        int &b = vaccinated[y][x];
-        ss >> a >> b;
+        size_t sum_pre_vacc, vaccinated;
+        ss >> sum_pre_vacc >> vaccinated;// areas[mat2sub(y,x)].sum_pre_vaccine >> areas[mat2sub(y,x)].vaccinated;
     } else if (!line.rfind("SAFE", 0)) {
-        unsigned int country_id;
-        unsigned int safe_distict;
-        std::stringstream(std::move(line).substr(5)) >> country_id >> safe_distict;
-        safe_districts[safe_distict] = country_id;
+        size_t country_id;
+        size_t safe_distict;
+        stringstream(move(line).substr(5)) >> country_id >> safe_distict;
+        // safe_districts[safe_distict] = country_id;
     } else if (!line.rfind("WARN", 0)) {
-        message = std::move(line);
+        message = move(line);
     }
     else {
-        std::cerr << "READER ERROR HAPPENED: unrecognized command line: " << line << std::endl;
+        cerr << "READER ERROR HAPPENED: unrecognized command line: " << line << endl;
         hasEnd = true;
         return true;
     }
@@ -55,40 +55,42 @@ bool Reader::readHelperFunc(std::string& line) {
 }
 
 void Reader::readDataConsole() {
-    std::string line;
+    string line;
 
-    while (std::getline(std::cin, line)) {
+    while (getline(cin, line)) {
         if (readHelperFunc(line)) { // ha igaz, akkor vége a beolvasásnak
             return;
         }
         if (!line.rfind("REQ", 0)) {
-            for (size_t i = 0; i < data[2]; i++) {
-                getline(std::cin, line);
-                int country_id;
-                std::stringstream(line) >> country_id >> countries[country_id].TPC >> countries[country_id].RV;
+            for (size_t i = 0; i < info.countries_count; i++) {
+                getline(cin, line);
+                size_t country_id;
+                stringstream(line) >> country_id >> countries[country_id].TPC >> countries[country_id].RV;
+                //info.TPC_0 = countries[country_id].TPC;
             }
         }
     }
-    std::cerr << "Unexpected input end." << std::endl;
+    cerr << "Unexpected input end." << endl;
     hasEnd = true;
 }
 
-void Reader::readDataInfo(const std::vector<std::string>& infos) {
+void Reader::readDataInfo(const vector<string>& infos) {
     for (auto it = infos.begin(); it != infos.end(); it++) {
         string line = *it;
         if (readHelperFunc(line)) {
             return;
         }
         if (!line.rfind("REQ", 0)) {
-            for (size_t i = 0; i < countries_count; i++) {
+            for (size_t i = 0; i < info.countries_count; i++) {
                 it++;
                 line = *it;
                 int country_id;
-                std::stringstream(line) >> country_id >> countries[country_id].TPC >> countries[country_id].RV;
+                stringstream(line) >> country_id >> countries[country_id].TPC >> countries[country_id].RV;
+                info.TPC_0 = countries[country_id].TPC;
             }
         }
     }
-    std::cerr << "Unexpected input end." << std::endl;
+    cerr << "Unexpected input end." << endl;
     hasEnd = true;
 }
 

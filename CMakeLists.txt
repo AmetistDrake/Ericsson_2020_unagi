@@ -24,7 +24,7 @@ add_executable(ericsson-socket_connector
         Solver.h
         Reader.cpp
         Reader.h
-        Solver_finished_functions.cpp)
+        solver_export_json.cpp solver5_vaccine_production.cpp solver4_infection.cpp solver3_cleaned_back.cpp solver2_healing.cpp solver1_move_vaccine.cpp)
 
 
 target_link_libraries(${CMAKE_PROJECT_NAME} ws2_32)
