@@ -22,7 +22,7 @@ struct Area {
     size_t healthRate;
     size_t population;
     size_t field_vaccine;
-    size_t sum_pre_vaccine;
+    // size_t sum_pre_vaccine;
     size_t vaccinated;
 };
 
