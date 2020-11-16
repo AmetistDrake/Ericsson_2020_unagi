@@ -55,14 +55,14 @@ vector<string> Solver::process(const vector<string> &infos) {
 
         field_vaccine_history.push_back(tmp); // legyen benne egy jövő, ami feltölthető a késleltetésekkel
         TPC_0 = reader.countries[reader.data[2]].TPC;
-    } else {
+    }/*else {
         for (size_t x = 0; x < reader.dimension[1]; x++) {
             for (size_t y = 0; y < reader.dimension[0]; y++) {
                 field_vaccine_history[reader.data[1] - 1][y][x] = reader.areas[y][x].field_vaccine;
                 reader.areas[y][x].field_vaccine += field_vaccine_history[reader.data[1]][y][x];
             }
         }
-    }
+    }*/
 
      //visszaad egy unordered_set<pair<int, int>, pair_hash> -et amiben a lehetséges területek vannak, ahova vakcinát lehet tenni
     //minden letétel után meg kell nézni az új lehetséges területeket
@@ -72,9 +72,8 @@ vector<string> Solver::process(const vector<string> &infos) {
     } else {
         enough_vaccine = false;
     }
-
+    from_reserve();
     while (enough_vaccine) {
-        from_reserve();
         pair<unsigned int, unsigned int> c = where_to_put(possible_choice, fields_to_vaccinate);
         cout <<"A hely ahova tenni szeretnenk : " << c.first << "  " << c.second << endl;
         Action temp{};
@@ -97,7 +96,7 @@ vector<string> Solver::process(const vector<string> &infos) {
                 std::vector<std::pair<int, int>> neighbours =return_nbs({c.first, c.second});
                 for(auto nbs:neighbours){
                     if(reader.safe_districts.find(reader.areas[nbs.first][nbs.second].district) == reader.safe_districts.end()){
-                        //possible_choice.insert(nbs);
+                        possible_choice.insert(nbs);
                     }
                 }
             }
@@ -122,7 +121,7 @@ vector<string> Solver::process(const vector<string> &infos) {
                 enough_vaccine = false;
             }
         }
-enough_vaccine = false;
+        enough_vaccine = false;
     }
 
 
@@ -279,22 +278,23 @@ unsigned int Solver::healing(unsigned int y, unsigned int x) {
 }
 
 void Solver::implement_healing() {
-    for (size_t x = 0; x <
-                       reader.dimension[1]; x++) { // oszlop és sorfolytonos indexelés, ez fontos, mert számít hogy a faktorok melyik iterációban frissülnek
+    for (size_t x = 0; x < reader.dimension[1]; x++) { // oszlop és sorfolytonos indexelés, ez fontos, mert számít hogy a faktorok melyik iterációban frissülnek
         for (size_t y = 0; y < reader.dimension[0]; y++) {
             if (reader.areas[y][x].infectionRate > 0 && (y + x < reader.data[1])) {
                 unsigned int h = healing(y, x); //ha nincs vakcina alapból ennyi a healing
 
                 ///******************* MÁSODIK FORDULÓ *****************///
                 unsigned int IR = infection_rate_history[reader.data[1] - 1][y][x]; //prev InfectionRate
+                cout <<"IR: " << IR << endl;
                 unsigned int P = reader.areas[y][x].population; //start_info
 
-                unsigned int n = 0; //összes ország tartalék vakcinái
+               // unsigned int n = 0; //összes ország tartalék vakcinái
                 ///A KÖVI 3 SORT KI KELL KOMMENTELNI, HA VAKCINÁZNI AKARUNK!!!
-                for (const auto &a : reader.countries) {
+                /*for (const auto &a : reader.countries) {
                    n += a.second.RV;
-                }
-                //n = reader.sum_of_previous_vaccine_on_areas[y][x];
+                }*/
+                int n = reader.sum_of_previous_vaccine_on_areas[y][x];
+                cout << "           n: " << n << endl;
 
                 unsigned int X = min(n * P, IR); //ennyivel csökken az infection és nő a healthRate vakcinázás után
                 int m = ceil(X / P); //ennyivel csökken a tartalék vakcinaszám az adott területen
@@ -303,15 +303,21 @@ void Solver::implement_healing() {
                 ///vakcina miatti gyógyulás
                 //mi van ha a területen nincs is vakcina?? feladatleírás alapján nem egyértelmű ennek a tesztelése
                 if (IR > 0 && n > 0) { //ha előző körben volt fertőzött és vakcina is van -> oltsa be
-                    std::cout<< "Van " << n << " db vakcina a " << y <<" "<< x << " teruleten osszesen. " <<'\n';
-                    std::cout<< "Nekunk " << reader.areas[y][x].field_vaccine << " db vakcinank van itt." <<'\n';
+                    //std::cout<< "Van " << n << " db vakcina a " << y <<" "<< x << " teruleten osszesen. " <<'\n';
+                    //std::cout<< "Nekunk " << reader.areas[y][x].field_vaccine << " db vakcinank van itt." <<'\n';
                     vaccinated_history[reader.data[1]][y][x] = X; // vakcina által mennyi gyógyulás volt a területen
                     reader.areas[y][x].healthRate += X;
                     reader.areas[y][x].infectionRate -= X;
-                    std::cout<< "Vakcina miatt gyogyult ennyivel: " << X <<'\n';
+                    if(reader.areas[y][x].infectionRate <0){
+                        reader.areas[y][x].infectionRate =0;
+                    }
+                    int csokkenes = floor(reader.areas[y][x].field_vaccine * (n - m) / n);
+                    reader.areas[y][x].field_vaccine -= csokkenes;
+                    //std::cout<< "Vakcina miatt gyogyult ennyivel: " << X <<'\n';
                     ///tartalék vakcinaszám csökkentése terület és országok szintjén
                     //reader.areas[y][x].field_vaccine -= m;
-                    std::cout<< "A tarcsi vakcinaszam ennyivel csokkent: " << m <<'\n';
+                    //std::cout<< "A tarcsi vakcinaszam ennyivel csokkent: " << m <<'\n';
+                   //" std::cout<< "A mi vakcinaszamunk ennyivel csokkent: " << csokkenes <<'\n';
                     //reader.sum_of_previous_vaccine_on_areas[y][x] -= m;
                     /*for (auto a : reader.countries) {
                         a.second.RV = floor(a.second.RV * (n - m) / n);
@@ -371,10 +377,10 @@ void Solver::cleaned_back() {
                 != reader.safe_districts.end() and reader.areas[y][x].field_vaccine != 0) {
                 Action temp{};
                 temp.val = reader.areas[y][x].field_vaccine;
-                if (field_vaccine_history[curr_tick][y][x] > 0) { // késleltetettek
+                /*if (field_vaccine_history[curr_tick][y][x] > 0) { // késleltetettek
                     temp.val += field_vaccine_history[curr_tick + 1][y][x];
                     field_vaccine_history[curr_tick + 1][y][x] = 0;
-                }
+                }*/
                 temp.x = x;
                 temp.y = y;
                 back(temp);
@@ -386,7 +392,7 @@ void Solver::cleaned_back() {
 //vissza a központba
 void Solver::back(const Solver::Action &temp) {
     int country_id = reader.data[2];
-    if (reader.areas[temp.y][temp.x].field_vaccine - temp.val >= 1) {
+    if (reader.areas[temp.y][temp.x].field_vaccine >= temp.val + 1) {
         reader.areas[temp.y][temp.x].field_vaccine -= temp.val;
         reader.countries[country_id].RV += int(temp.val);
         BACK.push_back(temp);
@@ -396,7 +402,7 @@ void Solver::back(const Solver::Action &temp) {
 
 void Solver::put(const Solver::Action &temp) {
     int country_id = reader.data[2];
-    if (reader.countries[country_id].RV >= int(temp.val)) {
+    if (reader.countries[country_id].RV >= temp.val) {
         reader.areas[temp.y][temp.x].field_vaccine += temp.val;
         reader.countries[country_id].RV -= int(temp.val);
         PUT.push_back(temp);
@@ -501,6 +507,7 @@ void Solver::possibilities(const std::unordered_set<int> &possible_districts,
 
 // hova lehet tenni vakcinát?
 void Solver::from_reserve() {
+    vaccinated_fields.clear();
     possible_choice.clear();
     vaccinated_fields.clear();
     vector<unordered_set<int>> clear_szomszedsag(szomszedsag.size());
@@ -522,6 +529,7 @@ void Solver::from_reserve() {
     }
     // Ha nincs egy területen se tartalék vakcinája az országnak
     if (vaccinated_fields.empty()) {
+        cout << "Meg nincs sehol vakcina" << endl;
         for (size_t x = 0; x < reader.dimension[1]; x++) {
             for (size_t y = 0; y < reader.dimension[0]; y++) {
                 if (x == 0 or y == 0 or x == reader.dimension[1] - 1 or y == reader.dimension[0] - 1) {

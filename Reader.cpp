@@ -35,8 +35,8 @@ bool Reader::readHelperFunc(std::string& line) {
         std::stringstream ss(std::move(line).substr(4));
         std::size_t y, x;
         ss >> y >> x;
-        int& a = sum_of_previous_vaccine_on_areas[y][x];
-        int&b = vaccinated[y][x];
+        int &a = sum_of_previous_vaccine_on_areas[y][x];
+        int &b = vaccinated[y][x];
         ss >> a >> b;
     } else if (!line.rfind("SAFE", 0)) {
         unsigned int country_id;
