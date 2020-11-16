@@ -24,42 +24,42 @@ vector<string> Solver::process(const vector<string> &infos) {
         return vector<string>{};
     }
     /********************************************/      /// Általános válasz:
-//
-//    PUT.clear();
-//    BACK.clear();
-//    vector<vector<size_t>> tmp(reader.dimension[0], vector<size_t>(reader.dimension[1], 0));
-//
-//    // 1) vakcina elhelyezés, csoportosítás
-//    move_vaccine();
-//
-//    // 2) healing - fertőzöttek gyógyulása
-//    healing_history.push_back(tmp);
-//    vaccinated_history.push_back(tmp);
-//    healing();
-//
-//    // 3) megtisztítottról visszekerül az országraktárba
-//    cleaned_back();
-//
-//    // 4) infection - vírus terjed
-//    infection_history.push_back(tmp);
-//    infection();
-//
-//
-//    // 5) vakcinagyártás
-//    vaccine_production();
-//
-//    // history-k feltöltése
-//    health_rate_history.push_back(tmp);
-//    infection_rate_history.push_back(tmp);
-//    for (size_t x = 0; x < reader.dimension[1]; x++) {
-//        for (size_t y = 0; y < reader.dimension[0]; y++) {
-//            health_rate_history[reader.info.curr_tick][y][x] = reader.areas[reader.mat2sub(y,x)].healthRate;
-//            infection_rate_history[reader.info.curr_tick][y][x] = reader.areas[reader.mat2sub(y,x)].infectionRate;
-//        }
-//    }
-//
-//    RV_history.push_back(reader.countries[0].RV);
-//    TPC_history.push_back(reader.countries[0].TPC);
+
+    PUT.clear();
+    BACK.clear();
+    vector<vector<size_t>> tmp(reader.dimension[0], vector<size_t>(reader.dimension[1], 0));
+
+    // 1) vakcina elhelyezés, csoportosítás
+    move_vaccine();
+
+    // 2) healing - fertőzöttek gyógyulása
+    healing_history.push_back(tmp);
+    vaccinated_history.push_back(tmp);
+    healing();
+
+    // 3) megtisztítottról visszekerül az országraktárba
+    cleaned_back();
+
+    // 4) infection - vírus terjed
+    infection_history.push_back(tmp);
+    infection();
+
+
+    // 5) vakcinagyártás
+    vaccine_production();
+
+    // history-k feltöltése
+    health_rate_history.push_back(tmp);
+    infection_rate_history.push_back(tmp);
+    for (size_t x = 0; x < reader.dimension[1]; x++) {
+        for (size_t y = 0; y < reader.dimension[0]; y++) {
+            health_rate_history[reader.info.curr_tick][y][x] = reader.areas[reader.mat2sub(y,x)].healthRate;
+            infection_rate_history[reader.info.curr_tick][y][x] = reader.areas[reader.mat2sub(y,x)].infectionRate;
+        }
+    }
+
+    RV_history.push_back(reader.countries[0].RV);
+    TPC_history.push_back(reader.countries[0].TPC);
 
     // Válasz
     vector<string> commands;

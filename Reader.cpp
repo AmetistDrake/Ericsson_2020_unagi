@@ -2,7 +2,7 @@
 
 using namespace std;
 
-bool Reader::readHelperFunc(std::string& line) {
+bool Reader::readHelperFunc(string& line) {
     if (!line.rfind('.', 0)) {
         return true;
     }
@@ -27,7 +27,7 @@ bool Reader::readHelperFunc(std::string& line) {
         stringstream ss(move(line).substr(3));
         size_t y, x;
         ss >> y >> x;
-        Area a = areas[y*dimension[1]+x];
+        Area& a = areas[y*dimension[1]+x];
         a.x = x;
         a.y = y;
         ss >> a.district >> a.infectionRate >> a.population;
@@ -42,7 +42,7 @@ bool Reader::readHelperFunc(std::string& line) {
         size_t country_id;
         size_t safe_distict;
         stringstream(move(line).substr(5)) >> country_id >> safe_distict;
-        // safe_districts[safe_distict] = country_id;
+        safe_districts[safe_distict] = country_id;
     } else if (!line.rfind("WARN", 0)) {
         message = move(line);
     }
@@ -66,7 +66,6 @@ void Reader::readDataConsole() {
                 getline(cin, line);
                 size_t country_id;
                 stringstream(line) >> country_id >> countries[country_id].TPC >> countries[country_id].RV;
-                //info.TPC_0 = countries[country_id].TPC;
             }
         }
     }
