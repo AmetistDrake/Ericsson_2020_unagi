@@ -18,6 +18,8 @@ private:
     Reader reader;
     struct Action {
         size_t y,x,val;
+        Action() = default;
+        explicit Action(size_t y_, size_t x_, size_t val_) : y(y_), x(x_), val(val_) {};
     };
     
     vector<vector<vector<size_t>>> infection_history;
@@ -36,8 +38,10 @@ private:
 
     // 1)
     void move_vaccine();
-        pair<size_t, size_t> where_to_put(const vector<pair<size_t,size_t>>& from, const vector<pair<size_t,size_t>>& to);
+        vector<pair<size_t, size_t>> where_to_put(const vector<pair<size_t,size_t>>& from, const vector<pair<size_t,size_t>>& to);
         vector<pair<size_t, size_t>> get_infected_fields();
+        vector<pair<size_t, size_t>> get_starting_fields();
+        size_t vaccine_amount(const pair<size_t,size_t>& selected);
 
     // 2)
     void healing();

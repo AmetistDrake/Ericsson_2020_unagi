@@ -3,43 +3,84 @@
 using namespace std;
 
 void Solver::move_vaccine() {
+    vector<pair<size_t, size_t>> infected_fields = get_infected_fields();
+    vector<pair<size_t, size_t>> starting_fields = get_starting_fields();
+    vector<pair<size_t, size_t>> selected = where_to_put(starting_fields, infected_fields);
+    while (reader.countries[reader.info.country_id].RV > 0) {
+        pair<size_t, size_t> curr = selected.back();
+        selected.pop_back();
+        size_t amount = vaccine_amount(curr);
+        if (amount != 0) {
+            put(Action(curr.first, curr.second, amount));
+        }
+    }
+}
+
+size_t Solver::vaccine_amount (const pair<size_t,size_t>& selected) {
+    if (reader.areas[selected.first][selected.second].infectionRate > 0) { //ha nem tiszta terület
+        if (reader.areas[selected.first][selected.second].field_vaccine > 0) { // ha a területen már van vakcina
+            int val = reader.areas[selected.first][selected.second].infectionRate;
+            if (reader.countries[0].RV < val) {
+                val = reader.countries[0].RV;
+            }
+            return val;
+        }
+        else{// ha még nincs a területen vakcina
+            int val = reader.areas[selected.first][selected.second].infectionRate;
+            if ( val< (6-reader.areas[selected.first][selected.second].population)) {
+                val = 6-reader.areas[selected.first][selected.second].population; // kell a minimum!
+                if (reader.countries[0].RV < val) {
+                    return 0;
+                }
+                else{
+                    return val;
+                }
+            }
+        }
+    }
+    else{// ha a terület tiszta
+        int val = 6-reader.areas[selected.first][selected.second].population;
+        if (reader.countries[0].RV < val) {
+            return 0;
+        }
+        else{
+            return val;
+        }
+    }
+}
+
+
+vector<pair<size_t, size_t>> Solver::get_starting_fields (){
     vector<pair<size_t,size_t>> from;
     vector<pair<size_t,size_t>> null_from;
     vector<pair<size_t,size_t>> poten;
-     int sum_of_field_vaccine = 0;
+    // int sum_of_field_vaccine = 0;
     for (size_t x = 0; x < reader.dimension[1]; x++) { // oszlop és sorfolytonos indexelés, ez fontos, mert számít hogy a faktorok melyik iterációban frissülnek
         for (size_t y = 0; y < reader.dimension[0]; y++) {
             if(reader.areas[y][x].field_vaccine >0){
-                poten.push_back({y,x});
+                poten.emplace_back(y,x);
             }
             if(y == 0 or x ==0 or y ==  reader.dimension[0]-1 or x== reader.dimension[1]-1){
                 if(reader.safe_districts.find(reader.areas[y][x].district) == reader.safe_districts.end()){
-                    null_from.push_back({y,x});
+                    null_from.emplace_back(y,x);
                 }
             }
         }
     }
     if(from.empty()){
-     //null_fromra kell meghívni
+        return null_from;
     }
     else{
         from = poten;
-     for(auto f:poten){
-         vector<pair<size_t, size_t>> nbs = get_nbs(f.first, f.second);
-         for(auto nb:nbs){
-             if (reader.safe_districts.find(reader.areas[nb.first][nb.second].district) == reader.safe_districts.end()){
-                 from.push_back( {nb.first,nb.second});
-             }
-         }
-     }
-     // fromra kell meghívni
-    }
-
-
-    vector<pair<size_t, size_t>> infected_fields = get_infected_fields();
-    while (reader.countries[reader.info.country_id].RV >= 0) {
-        pair<size_t, size_t> selected = nwhere_to_put(..., infected_fields);
-        put(selected);
+        for(auto f:poten){
+            vector<pair<size_t, size_t>> nbs = get_nbs(f.first, f.second);
+            for(auto nb:nbs){
+                if (reader.safe_districts.find(reader.areas[nb.first][nb.second].district) == reader.safe_districts.end()){
+                    from.emplace_back(nb.first,nb.second);
+                }
+            }
+        }
+        return from;
     }
 }
 
@@ -52,9 +93,18 @@ vector<pair<size_t, size_t>> Solver::get_infected_fields() {
             }
         }
     }
+    return coords;
 }
 
-pair<size_t, size_t> Solver::where_to_put (const vector<pair<size_t,size_t>>& from, const vector<pair<size_t,size_t>>& to){
+vector<pair<size_t, size_t>> Solver::where_to_put (const vector<pair<size_t,size_t>>& from, const vector<pair<size_t,size_t>>& to){
+//
+//    vector<pair<size_t, size_t>> from;
+//    vector<pair<size_t, size_t>> to;
+//
+//    from.push_back(from1.back());
+//    to.push_back(to1.back());
+//
+
     struct Props {
         size_t dist = std::numeric_limits<size_t>::max();
         pair<size_t,size_t> prev_visited {};
@@ -112,8 +162,8 @@ pair<size_t, size_t> Solver::where_to_put (const vector<pair<size_t,size_t>>& fr
                         if (curr.dist + reader.areas[nb.second][nb.first].population < table[nb].dist) {
                             table[nb].prev_visited = curr.node;
                             table[nb].dist = curr.dist + reader.areas[nb.second][nb.first].population;
+                            q.push(Node_dist(nb, table[nb].dist));
                         }
-                        q.push(Node_dist(nb, table[nb].dist));
                     }
                 }
             }
@@ -124,15 +174,34 @@ pair<size_t, size_t> Solver::where_to_put (const vector<pair<size_t,size_t>>& fr
 
         for (const auto& coord : to) {
             pair<size_t, size_t> curr_node = coord;
+            if (table[coord].dist == 0) {
+                possible_coords.push(Node_dist(coord, 0));
+                continue;
+            }
+            cout << "(" << curr_node.first << "," << curr_node.second << ")";
             while (table[curr_node].prev_visited != f)
             {
                 curr_node = table[curr_node].prev_visited;
+                cout << "(" << curr_node.first << "," << curr_node.second << ")";
             }
             possible_coords.push({curr_node, table[coord].dist});
-            // cout << curr_node.first << "," << curr_node.second << " " << table[coord].dist << endl;
+            cout << table[coord].dist << endl;
         }
     }
+    cout << "(" << possible_coords.top().node.first << "," << possible_coords.top().node.second << ") " << possible_coords.top().dist << endl;
 
-    // cout << "(" << possible_coords.top().node.first << "," << possible_coords.top().node.second << ") " << possible_coords.top().dist << endl;
-    return possible_coords.top().node;
+    vector<pair<size_t,size_t>> selected;
+    while (!possible_coords.empty()) {
+        // cout << "(" << possible_coords.top().node.first << "," << possible_coords.top().node.second << ")";
+        pair<size_t, size_t> tmp = possible_coords.top().node;
+        possible_coords.pop();
+        if (find(selected.begin(), selected.end(), tmp) == selected.end()) {
+            selected.push_back(tmp);
+        }
+    }
+    reverse(selected.begin(), selected.end());
+    for (auto s : selected) {
+        cout << "(" << s.first << "," << s.second << ")";
+    }
+    return selected;
 }

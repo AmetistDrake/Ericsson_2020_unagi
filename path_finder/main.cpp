@@ -13,7 +13,7 @@ struct Reader {
     vector<vector<Area>> areas;
 };
 
-pair<size_t, size_t> where_to_put (const Reader& reader, const vector<pair<size_t,size_t>>& from, const vector<pair<size_t,size_t>>& to){
+vector<pair<size_t, size_t>> where_to_put (const Reader& reader, const vector<pair<size_t,size_t>>& from, const vector<pair<size_t,size_t>>& to){
     struct Props {
         size_t dist = std::numeric_limits<size_t>::max();
         pair<size_t,size_t> prev_visited {};
@@ -83,19 +83,36 @@ pair<size_t, size_t> where_to_put (const Reader& reader, const vector<pair<size_
 
         for (const auto& coord : to) {
             pair<size_t, size_t> curr_node = coord;
-            cout << "(" << curr_node.first << "," << curr_node.second << ")";
+            if (table[coord].dist == 0) {
+                possible_coords.push(Node_dist(coord, 0));
+                continue;
+            }
+            //cout << "(" << curr_node.first << "," << curr_node.second << ")";
             while (table[curr_node].prev_visited != f)
             {
                 curr_node = table[curr_node].prev_visited;
-                cout << "(" << curr_node.first << "," << curr_node.second << ")";
+                //cout << "(" << curr_node.first << "," << curr_node.second << ")";
             }
             possible_coords.push({curr_node, table[coord].dist});
-            cout << table[coord].dist << endl;
+            //cout << table[coord].dist << endl;
         }
     }
-
     cout << "(" << possible_coords.top().node.first << "," << possible_coords.top().node.second << ") " << possible_coords.top().dist << endl;
-    return possible_coords.top().node;
+
+    vector<pair<size_t,size_t>> selected;
+    while (!possible_coords.empty()) {
+        // cout << "(" << possible_coords.top().node.first << "," << possible_coords.top().node.second << ")";
+        pair<size_t, size_t> tmp = possible_coords.top().node;
+        possible_coords.pop();
+        if (find(selected.begin(), selected.end(), tmp) == selected.end()) {
+            selected.push_back(tmp);
+        }
+    }
+    reverse(selected.begin(), selected.end());
+    for (auto s : selected) {
+        cout << "(" << s.first << "," << s.second << ")";
+    }
+    return selected;
 }
 
 int main() {
@@ -114,7 +131,7 @@ int main() {
         cout << endl;
     }
 
-    vector<pair<size_t, size_t>> from {{0,0}, {0, 1}};
+    vector<pair<size_t, size_t>> from {{0,0}, {0, 1}, {2,1}};
     vector<pair<size_t, size_t>> to {{2,1},{0,3}};
     where_to_put(reader, from, to);
 
