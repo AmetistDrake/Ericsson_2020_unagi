@@ -332,15 +332,15 @@
                 for (let i = 0; i < N; i++) {
                     for (let j = 0; j < M; j++) {
                         let txt;
-                        // Field vaccine
-                        if (disp_info.field_vaccine[j][i] > 0) {
-                            context.font = String(f_width /2) + "px Helvetica";
-                            context.fillStyle = "white";
-                            txt = disp_info.infection_rate[curr_tick][j][i];
-                            context.textBaseline = "middle";
-                            context.textAlign = "center";
-                            context.fillText(txt, j*f_width+f_width / 2, i * f_height + f_height / 2);
-                        }
+                        // // Field vaccine
+                        // if (disp_info.field_vaccine[j][i] > 0) {
+                        //     context.font = String(f_width /2) + "px Helvetica";
+                        //     context.fillStyle = "white";
+                        //     txt = disp_info.infection_rate[curr_tick][j][i];
+                        //     context.textBaseline = "middle";
+                        //     context.textAlign = "center";
+                        //     context.fillText(txt, j*f_width+f_width / 2, i * f_height + f_height / 2);
+                        // }
 
                         // Population
                         context.fillStyle = 'rgb(158,185,226)';
@@ -444,19 +444,19 @@
                     }
                 }
                 // Tiszta szomszédos területek
-                for (let i = 0; i < disp_info.clean_nbs[curr_tick].size; i++) {
-                    for (let j = 0; j < disp_info.clean_nbs[i].size; j++) {
-                        context.fillStyle = 'rgb(80,141,42)';
-                        context.fillRect(disp_info.clean_nbs[i][j][1] * f_width +1 + 2 * (f_width-2) / divider, disp_info.clean_nbs[i][j][0] * f_height -1 + f_height - (f_height-2) / divider, (f_width-2) / divider, (f_height-2) / divider);
-
-                        txt = String(i);
-                        context.font = String(f_width / 2 / text_divider) + "px Helvetica";
-                        context.fillStyle = "white";
-                        context.textBaseline = "middle";
-                        context.textAlign = "center";
-                        context.fillText(txt, disp_info.clean_nbs[i][j][1] * f_width +1 + 2*(f_width-2) / divider + (f_width-2) / divider / 2, disp_info.clean_nbs[i][j][0] * f_height -1 + (f_height-2) / divider / 2 + f_height - (f_height-2) / divider);
-                    }
-                }
+                // for (let i = 0; i < disp_info.clean_groups[curr_tick].size; i++) {
+                //     for (let j = 0; j < disp_info.clean_groups[i].size; j++) {
+                //         context.fillStyle = 'rgb(80,141,42)';
+                //         context.fillRect(disp_info.clean_groups[i][j][1] * f_width +1 + 2 * (f_width-2) / divider, disp_info.clean_groups[i][j][0] * f_height -1 + f_height - (f_height-2) / divider, (f_width-2) / divider, (f_height-2) / divider);
+                //
+                //         txt = String(i);
+                //         context.font = String(f_width / 2 / text_divider) + "px Helvetica";
+                //         context.fillStyle = "white";
+                //         context.textBaseline = "middle";
+                //         context.textAlign = "center";
+                //         context.fillText(txt, disp_info.clean_groups[i][j][1] * f_width +1 + 2*(f_width-2) / divider + (f_width-2) / divider / 2, disp_info.clean_groups[i][j][0] * f_height -1 + (f_height-2) / divider / 2 + f_height - (f_height-2) / divider);
+                //     }
+                // }
             }
             else {
                 for(let i = 0; i < N; i++) {

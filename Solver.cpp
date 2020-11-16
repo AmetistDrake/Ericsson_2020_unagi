@@ -53,8 +53,8 @@ vector<string> Solver::process(const vector<string> &infos) {
     infection_rate_history.push_back(tmp);
     for (size_t x = 0; x < reader.dimension[1]; x++) {
         for (size_t y = 0; y < reader.dimension[0]; y++) {
-            health_rate_history[reader.info.curr_tick][y][x] = reader.areas[reader.mat2sub(y,x)].healthRate;
-            infection_rate_history[reader.info.curr_tick][y][x] = reader.areas[reader.mat2sub(y,x)].infectionRate;
+            health_rate_history[reader.info.curr_tick][y][x] = reader.areas[y][x].healthRate;
+            infection_rate_history[reader.info.curr_tick][y][x] = reader.areas[y][x].infectionRate;
         }
     }
 
@@ -89,8 +89,8 @@ vector<pair<size_t, size_t>> Solver::get_nbs(size_t y, size_t x) {
 //vissza a központba
 void Solver::back(const Solver::Action &temp) {
     int country_id = reader.info.country_id;
-    if (reader.areas[reader.mat2sub(temp.y, temp.x)].field_vaccine - temp.val >= 1) {
-        reader.areas[reader.mat2sub(temp.y, temp.x)].field_vaccine -= temp.val;
+    if (reader.areas[temp.y][temp.x].field_vaccine - temp.val >= 1) {
+        reader.areas[temp.y][temp.x].field_vaccine -= temp.val;
         reader.countries[country_id].RV += int(temp.val);
         BACK.push_back(temp);
     }
@@ -99,7 +99,7 @@ void Solver::back(const Solver::Action &temp) {
 void Solver::put(const Solver::Action &temp) {
     int country_id = reader.info.country_id;
     if (reader.countries[country_id].RV >= int(temp.val)) {
-        reader.areas[reader.mat2sub(temp.y, temp.x)].field_vaccine += temp.val;
+        reader.areas[temp.y][temp.x].field_vaccine += temp.val;
         reader.countries[country_id].RV -= int(temp.val);
         PUT.push_back(temp);
     }
