@@ -15,7 +15,7 @@ void Solver::cleaned_back() {
                     temp.val += field_vaccine_history[curr_tick + 1][y][x];
                     field_vaccine_history[curr_tick + 1][y][x] = 0;
                 }
-                temp.val = reader.areas[reader.mat2sub(y,x)].field_vaccine;
+                temp.val = reader.areas[y][x].field_vaccine;
                 temp.x = x;
                 temp.y = y;
                 back(temp);
