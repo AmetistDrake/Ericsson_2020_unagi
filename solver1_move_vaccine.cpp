@@ -3,6 +3,39 @@
 using namespace std;
 
 void Solver::move_vaccine() {
+    vector<pair<size_t,size_t>> from;
+    vector<pair<size_t,size_t>> null_from;
+    vector<pair<size_t,size_t>> poten;
+     int sum_of_field_vaccine = 0;
+    for (size_t x = 0; x < reader.dimension[1]; x++) { // oszlop és sorfolytonos indexelés, ez fontos, mert számít hogy a faktorok melyik iterációban frissülnek
+        for (size_t y = 0; y < reader.dimension[0]; y++) {
+            if(reader.areas[y][x].field_vaccine >0){
+                poten.push_back({y,x});
+            }
+            if(y == 0 or x ==0 or y ==  reader.dimension[0]-1 or x== reader.dimension[1]-1){
+                if(reader.safe_districts.find(reader.areas[y][x].district) == reader.safe_districts.end()){
+                    null_from.push_back({y,x});
+                }
+            }
+        }
+    }
+    if(from.empty()){
+     //null_fromra kell meghívni
+    }
+    else{
+        from = poten;
+     for(auto f:poten){
+         vector<pair<size_t, size_t>> nbs = get_nbs(f.first, f.second);
+         for(auto nb:nbs){
+             if (reader.safe_districts.find(reader.areas[nb.first][nb.second].district) == reader.safe_districts.end()){
+                 from.push_back( {nb.first,nb.second});
+             }
+         }
+     }
+     // fromra kell meghívni
+    }
+
+
 
 }
 
