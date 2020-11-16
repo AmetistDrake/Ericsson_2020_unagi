@@ -110,7 +110,7 @@ vector<pair<size_t, size_t>> Solver::where_to_put (const vector<pair<size_t,size
     }
     cout << endl;
 
-    from.push_back({23,21});
+    from.push_back({23,21}); // Valamiért y = 24 és x = 22 tönkreteszi. Dijkstra sem biztosan jó.
     to.push_back({17, 14});
 
 
